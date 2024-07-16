@@ -37,7 +37,6 @@ const Screen = () => {
     return ans;
 }
 
-let t = 0;
 const screen = Screen();
 const render = (x, y, t) => {
     const px = (x * t) / screen.width;

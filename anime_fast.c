@@ -27,7 +27,7 @@ void close_screen(Screen *screen)
     close(screen->frame_buffer_fd);
 }
 
-Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y, void *c), void *context)
+Screen *anime(Screen *screen, double t)
 {
     int k;
     uint32_t screen_size = screen->size;
@@ -40,14 +40,15 @@ Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y
         uint32_t j = (k / channels) % w;
         uint32_t x = j;
         uint32_t y = h - 1 - i;
-        uint8_t *color = lambda(screen, x, y, context);
-        if (color == NULL)
-            continue;
-        screen->buffer[k] = color[2];
-        screen->buffer[k + 1] = color[1];
-        screen->buffer[k + 2] = color[0];
+        double px = (double)x * t / screen->width;
+        double py = (double)y * t / screen->height;
+        uint8_t r = (uint8_t)(MAX_BYTE * fmod(px, 1.0));
+        uint8_t g = (uint8_t)(MAX_BYTE * fmod(py, 1.0));
+        uint8_t b = (uint8_t)0;
+        screen->buffer[k] = b;
+        screen->buffer[k + 1] = g;
+        screen->buffer[k + 2] = r;
         screen->buffer[k + 3] = MAX_BYTE;
-        free(color);
     }
     return screen;
 }
@@ -84,31 +85,13 @@ Screen *new_screen()
     return ans;
 }
 
-typedef struct time_struct
-{
-    double time;
-} Time;
-
-uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context)
-{
-    uint8_t *ans = malloc(sizeof(uint8_t) * 3);
-    double time = ((Time *)context)->time;
-    double px = (double)x * time / screen->width;
-    double py = (double)y * time / screen->height;
-    ans[0] = (uint8_t)(MAX_BYTE * fmod(px, 1.0));
-    ans[1] = (uint8_t)(MAX_BYTE * fmod(py, 1.0));
-    ans[2] = (uint8_t)0;
-    return ans;
-}
-
 int main()
 {
     Screen *screen = new_screen();
     double t = 0;
     while (t < 10)
     {
-        Time time = {.time = t};
-        map(screen, anime, &time);
+        anime(screen, t);
         t = t + 0.01;
     }
     close_screen(screen);
