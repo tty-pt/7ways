@@ -70,6 +70,7 @@ Screen *new_screen()
     }
     int w = vinfo.xres;
     int h = vinfo.yres;
+    printf("width: %d, height: %d", w, h);
     int color_channels = vinfo.bits_per_pixel / BYTE;
     long screen_size = w * h * color_channels;
     uint8_t *buffer = (uint8_t *)mmap(0, screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, fb_fd, 0);
