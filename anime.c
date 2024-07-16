@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <stdint.h>
 #include <math.h>
+#include <string.h>
 
 #define BYTE 8
 #define MAX_BYTE 255
@@ -17,6 +18,7 @@ typedef struct screen_struct
     uint32_t width;
     uint32_t height;
     uint8_t *buffer;
+    uint8_t *canvas;
     uint8_t channels;
     int frame_buffer_fd;
 } Screen;
@@ -43,12 +45,14 @@ Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y
         uint8_t *color = lambda(screen, x, y, context);
         if (color == NULL)
             continue;
-        screen->buffer[k] = color[2];
-        screen->buffer[k + 1] = color[1];
-        screen->buffer[k + 2] = color[0];
-        screen->buffer[k + 3] = MAX_BYTE;
+        screen->canvas[k] = color[2];
+        screen->canvas[k + 1] = color[1];
+        screen->canvas[k + 2] = color[0];
+        screen->canvas[k + 3] = MAX_BYTE;
         free(color);
     }
+    // write(screen->frame_buffer_fd, screen->canvas, screen->size);
+    memcpy(screen->buffer, screen->canvas, screen->size);
     return screen;
 }
 
@@ -74,10 +78,12 @@ Screen *new_screen()
     int color_channels = (vinfo.bits_per_pixel / BYTE);
     long screen_size = w * h * color_channels;
     uint8_t *buffer = (uint8_t *)mmap(0, screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, fb_fd, 0);
+    uint8_t *canvas = (uint8_t *)malloc(sizeof(uint8_t) * screen_size);
     Screen *ans = malloc(sizeof(Screen));
     ans->width = w;
     ans->height = h;
     ans->buffer = buffer;
+    ans->canvas = canvas;
     ans->size = screen_size;
     ans->channels = color_channels;
     ans->frame_buffer_fd = fb_fd;
@@ -110,6 +116,7 @@ int main()
         Time time = {.time = t};
         map(screen, anime, &time);
         t = t + 0.01;
+        usleep(10);
     }
     close_screen(screen);
     return 0;
