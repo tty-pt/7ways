@@ -1,2 +1,2 @@
 # linux-framebuffer
-Render an image directly to output
+Render an image directly to output using linux framebuffer.
