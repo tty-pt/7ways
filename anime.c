@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <stdint.h>
-#include <math.h>
 #include <string.h>
 
 #define BYTE 8
@@ -101,8 +100,8 @@ uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context)
     double time = ((Time *)context)->time;
     double px = (double)x * time / screen->width;
     double py = (double)y * time / screen->height;
-    ans[0] = (uint8_t)(MAX_BYTE * fmod(px, 1.0));
-    ans[1] = (uint8_t)(MAX_BYTE * fmod(py, 1.0));
+    ans[0] = ((uint8_t)(MAX_BYTE * px)) % MAX_BYTE;
+    ans[1] = ((uint8_t)(MAX_BYTE * py)) % MAX_BYTE;
     ans[2] = (uint8_t)0;
     return ans;
 }
@@ -116,7 +115,7 @@ int main()
         Time time = {.time = t};
         map(screen, anime, &time);
         t = t + 0.01;
-        usleep(10);
+        // usleep(10);
     }
     close_screen(screen);
     return 0;

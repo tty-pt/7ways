@@ -48,6 +48,7 @@ const play = ({ oldTime, time }) => {
     const newTime = new Date().getTime();
     const dt = (newTime - oldTime) * 1e-3;
     screen.map(render, time);
+    if(time > 10) return;
     setTimeout(() => play({ oldTime: newTime, time: time + dt }));
 }
 play({ oldTime: new Date().getTime(), time: 0 });
