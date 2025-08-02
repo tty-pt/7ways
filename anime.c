@@ -30,7 +30,7 @@ void close_screen(Screen *screen)
 
 Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y, void *c), void *context)
 {
-    int k;
+    uint32_t k;
     uint32_t screen_size = screen->size;
     uint32_t w = screen->width;
     uint32_t h = screen->height;
@@ -48,7 +48,7 @@ Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y
         screen->canvas[k + 1] = color[1];
         screen->canvas[k + 2] = color[0];
         screen->canvas[k + 3] = MAX_BYTE;
-        free(color);
+        // free(color);
     }
     // write(screen->frame_buffer_fd, screen->canvas, screen->size);
     memcpy(screen->buffer, screen->canvas, screen->size);
@@ -58,7 +58,6 @@ Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y
 Screen *new_screen()
 {
     struct fb_var_screeninfo vinfo;
-    struct fb_fix_screeninfo finfo;
     int fb_fd = open("/dev/fb0", O_RDWR);
     if (fb_fd == -1)
     {
@@ -96,7 +95,7 @@ typedef struct time_struct
 
 uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context)
 {
-    uint8_t *ans = malloc(sizeof(uint8_t) * 3);
+    static uint8_t ans[3];
     double time = ((Time *)context)->time;
     double px = (double)x * time / screen->width;
     double py = (double)y * time / screen->height;
@@ -115,7 +114,6 @@ int main()
         Time time = {.time = t};
         map(screen, anime, &time);
         t = t + 0.01;
-        // usleep(10);
     }
     close_screen(screen);
     return 0;

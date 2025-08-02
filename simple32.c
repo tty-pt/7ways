@@ -29,7 +29,7 @@ void close_screen(Screen *screen)
 
 Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y))
 {
-    int k;
+    uint32_t k;
     uint32_t screen_size = screen->size;
     uint32_t w = screen->width;
     uint32_t h = screen->height;
@@ -55,7 +55,6 @@ Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y
 Screen *new_screen()
 {
     struct fb_var_screeninfo vinfo;
-    struct fb_fix_screeninfo finfo;
     int fb_fd = open("/dev/fb0", O_RDWR);
     if (fb_fd == -1)
     {

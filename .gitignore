@@ -36,6 +36,11 @@
 *.x86_64
 *.hex
 
+simple16
+simple32
+anime
+anime_fast
+
 # Debug files
 *.dSYM/
 *.su
@@ -50,3 +55,4 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
