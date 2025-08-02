@@ -48,7 +48,7 @@ Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y
         screen->canvas[k + 1] = color[1];
         screen->canvas[k + 2] = color[0];
         screen->canvas[k + 3] = MAX_BYTE;
-        // free(color);
+        free(color);
     }
     // write(screen->frame_buffer_fd, screen->canvas, screen->size);
     memcpy(screen->buffer, screen->canvas, screen->size);
@@ -95,7 +95,7 @@ typedef struct time_struct
 
 uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context)
 {
-    static uint8_t ans[3];
+    uint8_t *ans = malloc(sizeof(uint8_t) * 3);
     double time = ((Time *)context)->time;
     double px = (double)x * time / screen->width;
     double py = (double)y * time / screen->height;
