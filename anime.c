@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200112L
 #include <fcntl.h>
 #include <linux/fb.h>
 #include <math.h>
@@ -7,12 +8,17 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <time.h>
 #include <unistd.h>
 
 #define BYTE 8
 #define MAX_BYTE 255
 
-typedef struct screen_struct {
+typedef struct {
+  double time;
+} Time;
+
+typedef struct {
   uint32_t size;
   uint32_t width;
   uint32_t height;
@@ -21,7 +27,7 @@ typedef struct screen_struct {
   int frame_buffer_fd;
 } Screen;
 
-Screen *new_screen() {
+Screen *Screen_new() {
   struct fb_var_screeninfo vinfo;
 
   int fb_fd = open("/dev/fb0", O_RDWR);
@@ -36,10 +42,10 @@ Screen *new_screen() {
     exit(2);
   }
 
-  int w = vinfo.xres;
-  int h = vinfo.yres;
-  int color_channels = vinfo.bits_per_pixel / BYTE;
-  long screen_size = w * h * color_channels;
+  uint32_t w = vinfo.xres;
+  uint32_t h = vinfo.yres;
+  uint8_t color_channels = vinfo.bits_per_pixel / BYTE;
+  uint32_t screen_size = w * h * color_channels;
 
   printf("Framebuffer size: width=%d, height=%d, channels=%d\n", w, h,
          color_channels);
@@ -63,7 +69,7 @@ Screen *new_screen() {
   return ans;
 }
 
-void close_screen(Screen *screen) {
+void Screen_close(Screen *screen) {
   free(screen->canvas);
   close(screen->frame_buffer_fd);
   free(screen);
@@ -83,8 +89,9 @@ Screen *map(Screen *screen,
     uint32_t x = j;
     uint32_t y = h - 1 - i;
     uint8_t *color = lambda(screen, x, y, context);
-    if (color == NULL)
+    if (color == NULL) {
       continue;
+    }
     screen->canvas[k] = color[2];     // Blue
     screen->canvas[k + 1] = color[1]; // Green
     screen->canvas[k + 2] = color[0]; // Red
@@ -93,19 +100,16 @@ Screen *map(Screen *screen,
     }
     free(color);
   }
-  // 	Reset file pointer to start of framebuffer
-  lseek(screen->frame_buffer_fd, 0, SEEK_SET);
-  // Push whole canvas to framebuffer in one call
-  write(screen->frame_buffer_fd, screen->canvas, screen->size);
-
+  Screen_paint(screen);
   return screen;
 }
 
-
-
-typedef struct time_struct {
-  double time;
-} Time;
+void Screen_paint(Screen *screen) {
+  // Reset file pointer to start of framebuffer
+  lseek(screen->frame_buffer_fd, 0, SEEK_SET);
+  // Push whole canvas to framebuffer in one call
+  write(screen->frame_buffer_fd, screen->canvas, screen->size);
+}
 
 uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context) {
   uint8_t *ans = malloc(sizeof(uint8_t) * 3);
@@ -121,16 +125,24 @@ uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context) {
   return ans;
 }
 
-int main() {
-  Screen *screen = new_screen();
-  double t = 0;
+double get_time() {
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return ts.tv_sec + ts.tv_nsec * 1e-9;
+}
 
+int main() {
+  Screen *screen = Screen_new();
+  double old_time = get_time();
+  double t = 0;
   while (t < 10.0) {
     Time time = {.time = t};
     map(screen, anime, &time);
-    t += 0.01;
+    double new_time = get_time();
+    double dt = new_time - old_time;
+    t = t + dt;
+    old_time = new_time;
   }
-
-  close_screen(screen);
+  Screen_close(screen);
   return 0;
 }

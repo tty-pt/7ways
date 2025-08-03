@@ -22,7 +22,7 @@ typedef struct screen_struct
     int frame_buffer_fd;
 } Screen;
 
-void close_screen(Screen *screen)
+void Screen_close(Screen *screen)
 {
     munmap(screen->buffer, screen->size);
     close(screen->frame_buffer_fd);
@@ -36,7 +36,7 @@ Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y
     uint32_t h = screen->height;
     uint8_t channels = screen->channels;
 
-    for (k = 0; k < screen_size; k += channels)
+    for (uint32_t k = 0; k < screen_size; k += channels)
     {
         uint32_t i = k / (channels * w);
         uint32_t j = (k / channels) % w;
@@ -59,7 +59,7 @@ Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y
     return screen;
 }
 
-Screen *new_screen()
+Screen *Screen_new()
 {
     struct fb_var_screeninfo vinfo;
     int fb_fd = open("/dev/fb0", O_RDWR);
@@ -101,8 +101,8 @@ uint8_t *shader(Screen *screen, uint32_t x, uint32_t y)
 
 int main()
 {
-    Screen *screen = new_screen();
+    Screen *screen = Screen_new();
     map(screen, shader);
-    close_screen(screen);
+    Screen_close(screen);
     return 0;
 }

@@ -22,14 +22,14 @@ typedef struct screen_struct
     int line_length;
 } Screen;
 
-void close_screen(Screen *screen)
+void Screen_close(Screen *screen)
 {
     munmap(screen->buffer, screen->size);
     close(screen->frame_buffer_fd);
     free(screen);
 }
 
-Screen *new_screen()
+Screen *Screen_new()
 {
     struct fb_var_screeninfo vinfo;
     struct fb_fix_screeninfo finfo;
@@ -133,7 +133,7 @@ Screen *map(Screen *screen, uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y
 
 int main()
 {
-    Screen *screen = new_screen();
+    Screen *screen = Screen_new();
     map(screen, shader);
-    close_screen(screen);
+    Screen_close(screen);
 }
