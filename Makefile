@@ -1,9 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O2
-SRC = simple.c simple16.c simple32.c anime.c anime_fast.c anime_fastest.c
-EXEC = simple simple16 simple32 anime anime_fast anime_fastest
+CFLAGS = -Wall -Wextra -O3
+SRC = simple.c simple16.c simple32.c anime.c anime_fast.c anime_fastest.c anime_port.c
+EXEC = simple simple16 simple32 anime anime_fast anime_fastest anime_bun anime_port
 
-all: CFLAGS += -O2
 all: $(EXEC)
 
 simple: simple.c
@@ -26,6 +25,9 @@ anime_fastest: anime_fastest.c
 
 anime_bun:
 	bun build --production --compile --outfile=anime_bun anime.mjs
+
+anime_port: anime_port.c
+	$(CC) $(CFLAGS) -o $@ $^ -lm
 
 clean:
 	rm -f $(EXEC)

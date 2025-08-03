@@ -40,6 +40,12 @@ simple16
 simple32
 anime
 anime_fast
+anime_bun
+anime_fastest
+anime_port
+simple 
+
+
 
 # Debug files
 *.dSYM/
