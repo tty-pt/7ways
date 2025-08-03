@@ -1,2 +1,3 @@
 # linux-framebuffer
-Render an image directly to output using linux framebuffer.
+
+The purpose of this repo is to provide a simple way to render images directly to the Linux framebuffer.

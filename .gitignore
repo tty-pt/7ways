@@ -35,16 +35,9 @@
 *.i*86
 *.x86_64
 *.hex
-
-simple16
-simple32
 anime
-anime_fast
 anime_bun
-anime_fastest
-anime_port
-simple 
-
+static 
 
 
 # Debug files
