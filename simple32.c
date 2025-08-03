@@ -15,7 +15,7 @@ typedef struct screen_struct {
   uint32_t size;
   uint32_t width;
   uint32_t height;
-  uint8_t *buffer;
+  uint8_t *canvas;
   uint8_t channels;
   uint8_t bits_per_pixel;
   int frame_buffer_fd;
@@ -43,7 +43,7 @@ Screen *Screen_new() {
   Screen *ans = malloc(sizeof(Screen));
   ans->width = w;
   ans->height = h;
-  ans->buffer = buffer;
+  ans->canvas = buffer;
   ans->size = screen_size;
   ans->channels = color_channels;
   ans->bits_per_pixel = vinfo.bits_per_pixel;
@@ -52,7 +52,7 @@ Screen *Screen_new() {
 }
 
 void Screen_close(Screen *screen) {
-  munmap(screen->buffer, screen->size);
+  munmap(screen->canvas, screen->size);
   close(screen->frame_buffer_fd);
 }
 
@@ -76,15 +76,15 @@ Screen *map(Screen *screen,
       continue;
     if (bpp == 32) {
       // BGRA
-      screen->buffer[k] = color[2];
-      screen->buffer[k + 1] = color[1];
-      screen->buffer[k + 2] = color[0];
-      screen->buffer[k + 3] = MAX_BYTE;
+      screen->canvas[k] = color[2];
+      screen->canvas[k + 1] = color[1];
+      screen->canvas[k + 2] = color[0];
+      screen->canvas[k + 3] = MAX_BYTE;
     } else if (bpp == 24) {
       // BGR
-      screen->buffer[k] = color[2];
-      screen->buffer[k + 1] = color[1];
-      screen->buffer[k + 2] = color[0];
+      screen->canvas[k] = color[2];
+      screen->canvas[k + 1] = color[1];
+      screen->canvas[k + 2] = color[0];
     } else if (bpp == 16) {
       // RGB565
       // 16 bits per pxl
@@ -97,8 +97,8 @@ Screen *map(Screen *screen,
       uint16_t r =
           (color[0] >> 3) & 0x1F; // == 32 * (color[0]/MAX_BYTE) & 0x1F;
       uint16_t c16 = (r << 11) | (g << 5) | b;
-      screen->buffer[k] = c16 & 0xFF;
-      screen->buffer[k + 1] = (c16 >> 8) & 0xFF;
+      screen->canvas[k] = c16 & 0xFF;
+      screen->canvas[k + 1] = (c16 >> 8) & 0xFF;
     }
     free(color);
   }
