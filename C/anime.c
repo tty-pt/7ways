@@ -27,6 +27,9 @@ typedef struct {
   int frame_buffer_fd;
 } Screen;
 
+// Function pointer type for pixel generator
+typedef uint8_t *lambda_t(Screen *s, uint32_t x, uint32_t y, void *c);
+
 Screen *Screen_new() {
   struct fb_var_screeninfo vinfo;
 
@@ -47,11 +50,10 @@ Screen *Screen_new() {
   uint8_t color_channels = vinfo.bits_per_pixel / BYTE;
   uint32_t screen_size = w * h * color_channels;
 
-  printf("Framebuffer size: width=%d, height=%d, channels=%d\n", w, h,
+  printf("Framebuffer size: width=%u, height=%u, channels=%u\n", w, h,
          color_channels);
 
-  // We avoid mmap for double buffering simulation
-  uint8_t *canvas = (uint8_t *)malloc(sizeof(uint8_t) * screen_size);
+  uint8_t *canvas = malloc(screen_size);
   if (!canvas) {
     perror("Failed to allocate canvas buffer");
     close(fb_fd);
@@ -75,9 +77,16 @@ void Screen_close(Screen *screen) {
   free(screen);
 }
 
-Screen *map(Screen *screen,
-            uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y, void *c),
-            void *context) {
+void Screen_paint(Screen *screen) {
+  lseek(screen->frame_buffer_fd, 0, SEEK_SET);
+  ssize_t written =
+      write(screen->frame_buffer_fd, screen->canvas, screen->size);
+  if (written < 0) {
+    perror("Error writing to framebuffer");
+  }
+}
+
+Screen *map(Screen *screen, lambda_t *lambda, void *context) {
   uint32_t screen_size = screen->size;
   uint32_t w = screen->width;
   uint32_t h = screen->height;
@@ -89,30 +98,21 @@ Screen *map(Screen *screen,
     uint32_t x = j;
     uint32_t y = h - 1 - i;
     uint8_t *color = lambda(screen, x, y, context);
-    if (color == NULL) {
+    if (!color)
       continue;
-    }
     screen->canvas[k] = color[2];     // Blue
     screen->canvas[k + 1] = color[1]; // Green
     screen->canvas[k + 2] = color[0]; // Red
     if (channels == 4) {
-      screen->canvas[k + 3] = MAX_BYTE; // Alpha (if present)
+      screen->canvas[k + 3] = MAX_BYTE; // Alpha
     }
-    free(color);
   }
   Screen_paint(screen);
   return screen;
 }
 
-void Screen_paint(Screen *screen) {
-  // Reset file pointer to start of framebuffer
-  lseek(screen->frame_buffer_fd, 0, SEEK_SET);
-  // Push whole canvas to framebuffer in one call
-  write(screen->frame_buffer_fd, screen->canvas, screen->size);
-}
-
 uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context) {
-  uint8_t *ans = malloc(sizeof(uint8_t) * 3);
+  static uint8_t ans[3]; // maintain static storage
   double time = ((Time *)context)->time;
 
   double px = (double)x * time / screen->width;
@@ -120,7 +120,7 @@ uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context) {
 
   ans[0] = ((uint8_t)(MAX_BYTE * px)) % MAX_BYTE;
   ans[1] = ((uint8_t)(MAX_BYTE * py)) % MAX_BYTE;
-  ans[2] = (uint8_t)0;
+  ans[2] = 0;
 
   return ans;
 }

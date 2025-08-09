@@ -11,7 +11,7 @@
 #define BYTE 8
 #define MAX_BYTE 255
 
-typedef struct screen_struct {
+typedef struct {
   uint32_t size;
   uint32_t width;
   uint32_t height;
@@ -20,6 +20,8 @@ typedef struct screen_struct {
   uint8_t bits_per_pixel;
   int frame_buffer_fd;
 } Screen;
+
+typedef uint8_t *lambda_t(Screen *s, uint32_t x, uint32_t y);
 
 Screen *Screen_new() {
   struct fb_var_screeninfo vinfo;
@@ -56,10 +58,7 @@ void Screen_close(Screen *screen) {
   close(screen->frame_buffer_fd);
 }
 
-
-
-Screen *map(Screen *screen,
-            uint8_t *(*lambda)(Screen *s, uint32_t x, uint32_t y)) {
+Screen *map(Screen *screen, lambda_t *lambda) {
 
   uint32_t screen_size = screen->size;
   uint32_t w = screen->width;
@@ -100,13 +99,12 @@ Screen *map(Screen *screen,
       screen->canvas[k] = c16 & 0xFF;
       screen->canvas[k + 1] = (c16 >> 8) & 0xFF;
     }
-    free(color);
   }
   return screen;
 }
 
 uint8_t *shader(Screen *screen, uint32_t x, uint32_t y) {
-  uint8_t *ans = malloc(sizeof(uint8_t) * 3);
+  static uint8_t ans[3]; // maintain static storage
   ans[0] = (uint8_t)(MAX_BYTE * ((float)x / screen->width));
   ans[1] = (uint8_t)(MAX_BYTE * ((float)y / screen->height));
   ans[2] = 0;
