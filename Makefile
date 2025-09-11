@@ -1,20 +1,10 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -O3
-C_SRC = C/anime.c C/static.c
-EXEC = anime static anime_bun
+.SUFFIXES: .o .c
 
-all: $(EXEC)
+.c.o:
+	${CC} -o $@ -c $<
 
-anime: C/anime.c
-	$(CC) $(CFLAGS) -o $@ $< -lm
+rpg: src/fb.o
+	${CC} -o $@ src/main.c $<
 
-static: C/static.c
-	$(CC) $(CFLAGS) -o $@ $<
-
-anime_bun:
-	bun build --production --compile --outfile=anime_bun JS/anime.mjs
-
-clean:
-	rm -f anime static anime_bun
-
-.PHONY: all clean
+rpg: src/main.c include/draw.h
+src/fb.o: src/fb.c include/draw.h
