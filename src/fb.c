@@ -69,21 +69,34 @@ void fb_render(backend_t *be, draw_lambda_t *lambda,
 	uint32_t sw = be->width;
 	uint32_t sh = be->height;
 	uint8_t channels = screen.channels;
-	uint8_t *pos = &screen.canvas[0];
-
-	lseek(screen.frame_buffer_fd, 0, SEEK_SET);
+	size_t offset = y * sw + x;
+	uint8_t *start = &screen.canvas[0]
+		+ offset * channels;
+	uint8_t *pos = start;
 
 	for (
-			uint32_t kc = 0;
-			kc < screen_size;
+			uint32_t kce = (y + h) * sw,
+			kc = offset, kcm = kc + w;
+
+			kc < kce;
+
 			kc ++, pos += channels)
 	{
+		if (kc > kcm) {
+			kc += sw - w - 1;
+			if (kc >= kce)
+				break;
+			kcm = kc + w;
+			pos = &screen.canvas[0]
+				+ kc * channels;
+		}
+
 		uint32_t i = kc / sw;
 		uint32_t j = kc % sw;
-		uint32_t x = j;
-		uint32_t y = sh - 1 - i;
+		uint32_t ix = j;
+		uint32_t iy = sh - 1 - i;
 		uint8_t color[channels];
-		lambda(color, x, y, be, ctx);
+		lambda(color, ix, iy, be, ctx);
 		pos[0] = color[2];
 		pos[1] = color[1];
 		pos[2] = color[0];
@@ -91,9 +104,11 @@ void fb_render(backend_t *be, draw_lambda_t *lambda,
 			pos[3] = UCHAR_MAX; // Alpha
 	}
 
-	lseek(screen.frame_buffer_fd, 0, SEEK_SET);
-	write(screen.frame_buffer_fd, screen.canvas,
-			screen.size * channels);
+	lseek(screen.frame_buffer_fd,
+			offset * channels, SEEK_SET);
+
+	write(screen.frame_buffer_fd,
+			start, (h * sw) * channels);
 }
 
 static inline

@@ -36,11 +36,29 @@ int main() {
 	be.init(&be);
 	double t = 0;
 
-	while (t < 10.0) {
+	while (t < 3) {
 		ctx_t ctx = { .time = t };
 
 		be.render(&be, anime, 0, 0,
 				be.width, be.height, &ctx);
+		t += 0.01;
+	}
+
+	while (t < 5) {
+		ctx_t ctx = { .time = t };
+
+		be.render(&be, anime, 10, 10,
+				100, 100, &ctx);
+		t += 0.01;
+	}
+
+	uint32_t tw = be.width / 3, th = be.height / 3;
+
+	while (t < 10) {
+		ctx_t ctx = { .time = t };
+
+		be.render(&be, anime, tw, th,
+				tw, th, &ctx);
 		t += 0.01;
 	}
 
