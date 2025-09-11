@@ -1,11 +1,9 @@
 #define _POSIX_C_SOURCE 200112L
 #include <fcntl.h>
 #include <linux/fb.h>
-#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <time.h>
@@ -27,9 +25,6 @@ typedef struct {
   int frame_buffer_fd;
 } Screen;
 
-// Function pointer type for pixel generator
-typedef uint8_t *lambda_t(Screen *s, uint32_t x, uint32_t y, void *c);
-
 Screen *Screen_new() {
   struct fb_var_screeninfo vinfo;
 
@@ -50,10 +45,11 @@ Screen *Screen_new() {
   uint8_t color_channels = vinfo.bits_per_pixel / BYTE;
   uint32_t screen_size = w * h * color_channels;
 
-  printf("Framebuffer size: width=%u, height=%u, channels=%u\n", w, h,
+  printf("Framebuffer size: width=%d, height=%d, channels=%d\n", w, h,
          color_channels);
 
-  uint8_t *canvas = malloc(screen_size);
+  // We avoid mmap for double buffering simulation
+  uint8_t *canvas = (uint8_t *)malloc(sizeof(uint8_t) * screen_size);
   if (!canvas) {
     perror("Failed to allocate canvas buffer");
     close(fb_fd);
@@ -77,42 +73,46 @@ void Screen_close(Screen *screen) {
   free(screen);
 }
 
-void Screen_paint(Screen *screen) {
-  lseek(screen->frame_buffer_fd, 0, SEEK_SET);
-  ssize_t written =
-      write(screen->frame_buffer_fd, screen->canvas, screen->size);
-  if (written < 0) {
-    perror("Error writing to framebuffer");
-  }
-}
+typedef void lambda_t(uint8_t *color, Screen *s, uint32_t x, uint32_t y, void *c);
 
 Screen *map(Screen *screen, lambda_t *lambda, void *context) {
   uint32_t screen_size = screen->size;
   uint32_t w = screen->width;
   uint32_t h = screen->height;
   uint8_t channels = screen->channels;
+  uint8_t *pos = &screen->canvas[0];
 
-  for (uint32_t k = 0; k < screen_size; k += channels) {
-    uint32_t i = k / (channels * w);
-    uint32_t j = (k / channels) % w;
+  for (
+		  uint32_t kc = 0;
+		  kc < screen_size / channels;
+		  kc ++, pos += channels)
+  {
+    uint32_t i = kc / w;
+    uint32_t j = kc % w;
     uint32_t x = j;
     uint32_t y = h - 1 - i;
-    uint8_t *color = lambda(screen, x, y, context);
-    if (!color)
-      continue;
-    screen->canvas[k] = color[2];     // Blue
-    screen->canvas[k + 1] = color[1]; // Green
-    screen->canvas[k + 2] = color[0]; // Red
+    uint8_t color[channels];
+    lambda(color, screen, x, y, context);
+    pos[0] = color[2];
+    pos[1] = color[1];
+    pos[2] = color[0];
     if (channels == 4) {
-      screen->canvas[k + 3] = MAX_BYTE; // Alpha
+      pos[3] = MAX_BYTE; // Alpha (if present)
     }
   }
-  Screen_paint(screen);
+  Screen_paint(screen); // -Wimplicit-function-declaration
   return screen;
 }
 
-uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context) {
-  static uint8_t ans[3]; // maintain static storage
+void Screen_paint(Screen *screen) {
+  // Reset file pointer to start of framebuffer
+  lseek(screen->frame_buffer_fd, 0, SEEK_SET);
+  // Push whole canvas to framebuffer in one call
+  write(screen->frame_buffer_fd, screen->canvas, screen->size);
+}
+
+lambda_t anime; // just forces the correct type below
+void anime(uint8_t *ans, Screen *screen, uint32_t x, uint32_t y, void *context) {
   double time = ((Time *)context)->time;
 
   double px = (double)x * time / screen->width;
@@ -120,9 +120,7 @@ uint8_t *anime(Screen *screen, uint32_t x, uint32_t y, void *context) {
 
   ans[0] = ((uint8_t)(MAX_BYTE * px)) % MAX_BYTE;
   ans[1] = ((uint8_t)(MAX_BYTE * py)) % MAX_BYTE;
-  ans[2] = 0;
-
-  return ans;
+  ans[2] = (uint8_t)0;
 }
 
 double get_time() {
