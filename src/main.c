@@ -3,8 +3,6 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <qsys.h>
-#include <png.h>
 
 typedef struct {
 	double time;
