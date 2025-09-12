@@ -7,5 +7,5 @@ LDLIBS := -lpng -lqsys -lqmap
 .c.o:
 	${CC} -o $@ -c $<
 
-rpg: src/fb.o src/img.o src/png.o
+rpg: src/fb.o src/img.o src/png.o src/tm.o
 	${CC} -o $@ src/main.c $^ ${LDFLAGS} ${LDLIBS}

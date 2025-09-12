@@ -1,5 +1,5 @@
 #include "../include/draw.h"
-#include "../include/img.h"
+#include "../include/tilemap.h"
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -43,21 +43,19 @@ inline static double dt_get() {
 extern void png_init(void);
 
 int main() {
-	img_t lamb;
+	tm_t lamb;
 	double t;
 	uint32_t tw, th;
 
 	img_init();
 	png_init();
 
-	lamb = img_load("./resources/lamb.png");
+	lamb = tm_load("./resources/lamb.png", 32, 32);
 
 	be.init();
 	t = 0;
 
 	start_t = timestamp();
-
-	img_render(&lamb, 20, 20, 20, 20, 200, 200);
 
 	tw = be.width / 3;
 	th = be.height / 3;
@@ -67,10 +65,14 @@ int main() {
 
 		be.render(anime, tw, th,
 				tw, th, &ctx);
+
+		tm_render(&lamb, tw * 2 - 64, th * 2 - 64,
+				((int) (t * 3.0)) % 6, 3);
+
 		t += dt_get();
 	}
 
 	be.deinit();
-	img_free(&lamb);
+	img_free(&lamb.img);
 	return 0;
 }
