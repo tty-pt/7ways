@@ -58,6 +58,10 @@ screen_t screen_new(backend_t *be) {
 	ans.channels = color_channels;
 	ans.frame_buffer_fd = fb_fd;
 
+	pread(fb_fd, ans.canvas,
+			(size_t) screen_size * ans.channels,
+			0);
+
 	return ans;
 }
 

@@ -52,16 +52,7 @@ int main() {
 
 	start_t = timestamp();
 
-	while (t < 3) {
-		ctx_t ctx = { .time = t };
-
-		fb.render(&fb, anime, 0, 0,
-				fb.width, fb.height, &ctx);
-		t += dt_get();
-	}
-
-	fb.render(&fb, png.lambda, 0, 0,
-			200, 200, lamb);
+	png.render(&fb, lamb, 20, 20, 20, 20, 200, 200);
 
 	uint32_t tw = fb.width / 3, th = fb.height / 3;
 

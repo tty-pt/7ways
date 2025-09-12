@@ -5,18 +5,24 @@
 #include <png.h>
 
 typedef struct {
-    png_bytep *rows;
-    int width;
-    int height;
-    int color_type;
-    int bit_depth;
+	png_bytep *rows;
+	int width;
+	int height;
 } pngi_t;
 
-void *pngi_load(const char *filename) {
+typedef struct {
+	pngi_t *pngi;
+	uint32_t cx, cy;
+} pngi_ctx_t;
+
+static void *
+pngi_load(const char *filename)
+{
 	FILE *fp = fopen(filename, "rb");
 	unsigned char header[8];
 	png_structp png;
 	pngi_t *img = malloc(sizeof(pngi_t));
+	int color_type, bit_depth;
 
 	CBUG(!fp, "fopen");
 
@@ -40,17 +46,17 @@ void *pngi_load(const char *filename) {
 
 	 img->width      = png_get_image_width(png, info);
 	 img->height     = png_get_image_height(png, info);
-	 img->color_type = png_get_color_type(png, info);
-	 img->bit_depth  = png_get_bit_depth(png, info);
+	 color_type = png_get_color_type(png, info);
+	 bit_depth  = png_get_bit_depth(png, info);
 
-	 if (img->bit_depth == 16)
+	 if (bit_depth == 16)
 		 png_set_strip_16(png);
 
-	 if (img->color_type == PNG_COLOR_TYPE_PALETTE)
+	 if (color_type == PNG_COLOR_TYPE_PALETTE)
 		 png_set_palette_to_rgb(png);
 
-	 if (img->color_type == PNG_COLOR_TYPE_GRAY
-			 && img->bit_depth < 8)
+	 if (color_type == PNG_COLOR_TYPE_GRAY
+			 && bit_depth < 8)
 		 png_set_expand_gray_1_2_4_to_8(png);
 
 	 if (png_get_valid(png, info, PNG_INFO_tRNS))
@@ -75,8 +81,9 @@ void *pngi_load(const char *filename) {
 	 return img;
 }
 
-
-void pngi_free(void *data) {
+static void
+pngi_free(void *data)
+{
 	pngi_t *pngi = data;
 
 	for (int y = 0; y < pngi->height; y++)
@@ -95,32 +102,45 @@ blend_u8(uint8_t s, uint8_t d, uint8_t a)
 		    );
 }
 
-
 static void
 pngi_lambda(uint8_t *color,
 		uint32_t x, uint32_t y,
 		backend_t *be,
 		void *context)
 {
+	pngi_ctx_t *pngi_ctx = context;
 	pngi_t *png = context;
-	png_bytep row = png->rows[y];
-	png_byte *pixel = &(row[x * 4]);
+
+	png_bytep row = pngi_ctx->pngi->rows[
+		pngi_ctx->cy + y
+	];
+
+	png_byte *pixel = &(row[
+			(pngi_ctx->cx + x) * 4
+	]);
 
 	color[2] = blend_u8(pixel[2], color[2], pixel[3]);
 	color[1] = blend_u8(pixel[1], color[1], pixel[3]);
 	color[0] = blend_u8(pixel[0], color[0], pixel[3]);
 }
 
-img_be_t img_png(char *filename) {
-	img_be_t ret;
-	ret.load = pngi_load;
-	ret.free = pngi_free;
-	ret.lambda = pngi_lambda;
-	return ret;
+static void
+pngi_render(backend_t *be, void *png,
+		uint32_t x, uint32_t y,
+		uint32_t cx, uint32_t cy,
+		uint32_t w, uint32_t h)
+{
+	pngi_ctx_t pngi_ctx = {
+		.pngi = png,
+		.cx = cx,
+		.cy = cy,
+	};
+
+	be->render(be, pngi_lambda, x, y, w, h, &pngi_ctx);
 }
 
 img_be_t png = {
 	.load = pngi_load,
 	.free = pngi_free,
-	.lambda = pngi_lambda,
+	.render = pngi_render,
 };
