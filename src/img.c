@@ -37,7 +37,7 @@ img_t img_load(char *filename) {
 	be = (img_be_t *) qmap_get(img_be_hd, ext + 1);
 	CBUG(!be, "IMG: %s backend not present.\n", ext);
 
-	ret.data = be->load(filename);
+	ret = be->load(filename);
 	ret.be = be;
 	return ret;
 }

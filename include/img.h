@@ -5,8 +5,14 @@
 
 struct img_be;
 
-typedef void *img_load_t(const char *filename);
-typedef void img_free_t(void *data);
+typedef struct {
+	struct img_be *be;
+	void *data;
+	uint32_t w, h;
+} img_t;
+
+typedef img_t img_load_t(const char *filename);
+typedef void img_free_t(img_t *img);
 typedef void img_render_t(void *png,
 		uint32_t x, uint32_t y,
 		uint32_t cx, uint32_t cy,
@@ -17,11 +23,6 @@ typedef struct img_be {
 	img_load_t *load;
 	img_free_t *free;
 } img_be_t;
-
-typedef struct {
-	img_be_t *be;
-	void *data;
-} img_t;
 
 void img_be_load(char *ext, img_load_t *load,
 		img_render_t *render,
@@ -42,7 +43,7 @@ img_render(img_t *img,
 static inline void
 img_free(img_t *img)
 {
-	img->be->free(img->data);
+	img->be->free(img);
 }
 
 #endif

@@ -6,8 +6,6 @@
 
 typedef struct {
 	png_bytep *rows;
-	int width;
-	int height;
 } pngi_t;
 
 typedef struct {
@@ -15,14 +13,16 @@ typedef struct {
 	uint32_t cx, cy;
 } pngi_ctx_t;
 
-static void *
+static img_t
 pngi_load(const char *filename)
 {
 	FILE *fp = fopen(filename, "rb");
 	unsigned char header[8];
 	png_structp png;
-	pngi_t *img = malloc(sizeof(pngi_t));
+	img_t img;
+	pngi_t *pngi = malloc(sizeof(pngi_t));
 	int color_type, bit_depth;
+	png_bytep *rows;
 
 	CBUG(!fp, "fopen");
 
@@ -44,10 +44,10 @@ pngi_load(const char *filename)
 	 png_set_sig_bytes(png, 8);
 	 png_read_info(png, info);
 
-	 img->width      = png_get_image_width(png, info);
-	 img->height     = png_get_image_height(png, info);
+	 img.w = png_get_image_width(png, info);
+	 img.h = png_get_image_height(png, info);
 	 color_type = png_get_color_type(png, info);
-	 bit_depth  = png_get_bit_depth(png, info);
+	 bit_depth = png_get_bit_depth(png, info);
 
 	 if (bit_depth == 16)
 		 png_set_strip_16(png);
@@ -67,26 +67,27 @@ pngi_load(const char *filename)
 
 	 png_read_update_info(png, info);
 
-	 img->rows = malloc(sizeof(png_bytep) * img->height);
+	 pngi->rows = malloc(sizeof(png_bytep) * img.h);
 
-	 for (int y = 0; y < img->height; y++)
-		 img->rows[y] = malloc(png_get_rowbytes(png,
+	 for (int y = 0; y < img.h; y++)
+		 pngi->rows[y] = malloc(png_get_rowbytes(png,
 					 info));
 
-	 png_read_image(png, img->rows);
+	 png_read_image(png, pngi->rows);
 
 	 fclose(fp);
 	 png_destroy_read_struct(&png, &info, NULL);
 
+	 img.data = pngi;
 	 return img;
 }
 
 static void
-pngi_free(void *data)
+pngi_free(img_t *img)
 {
-	pngi_t *pngi = data;
+	pngi_t *pngi = img->data;
 
-	for (int y = 0; y < pngi->height; y++)
+	for (int y = 0; y < img->h; y++)
 		free(pngi->rows[y]);
 
 	free(pngi->rows);
