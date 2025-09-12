@@ -11,6 +11,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.14.0",
   "devDependencies": {
+    "@tty-pt/qmap": "^0.2.6",
     "@tty-pt/qsys": "^0.0.11"
   }
 }

@@ -19,7 +19,7 @@ typedef struct {
 screen_t screen;
 
 static inline
-screen_t screen_new(backend_t *be) {
+screen_t screen_new(void) {
 	struct fb_var_screeninfo vinfo;
 
 	int fb_fd = open("/dev/fb0", O_RDWR);
@@ -51,8 +51,8 @@ screen_t screen_new(backend_t *be) {
 	}
 
 	screen_t ans;
-	be->width = w;
-	be->height = h;
+	be.width = w;
+	be.height = h;
 	ans.canvas = canvas;
 	ans.size = screen_size;
 	ans.channels = color_channels;
@@ -65,13 +65,13 @@ screen_t screen_new(backend_t *be) {
 	return ans;
 }
 
-void fb_render(backend_t *be, draw_lambda_t *lambda,
+void fb_render(draw_lambda_t *lambda,
 		uint32_t x, uint32_t y,
 		uint32_t w, uint32_t h, void *ctx)
 {
 	uint32_t screen_size = screen.size;
-	uint32_t sw = be->width;
-	uint32_t sh = be->height;
+	uint32_t sw = be.width;
+	uint32_t sh = be.height;
 	uint8_t channels = screen.channels;
 	size_t offset = y * sw + x;
 	uint8_t *start = &screen.canvas[0]
@@ -99,7 +99,7 @@ void fb_render(backend_t *be, draw_lambda_t *lambda,
 		uint32_t j = kc % sw;
 		uint32_t ix = j - x;
 		uint32_t iy = sh - 1 - i;
-		lambda(pos, ix, i - y, be, ctx);
+		lambda(pos, ix, i - y, ctx);
 	}
 
 	lseek(screen.frame_buffer_fd,
@@ -115,15 +115,15 @@ void screen_close(screen_t *screen) {
 	close(screen->frame_buffer_fd);
 }
 
-void fb_init(backend_t *be) {
-	screen = screen_new(be);
+void fb_init(void) {
+	screen = screen_new();
 }
 
-void fb_deinit(backend_t *be) {
+void fb_deinit(void) {
 	screen_close(&screen);
 }
 
-backend_t fb = {
+backend_t be = {
 	.init = fb_init,
 	.deinit = fb_deinit,
 	.render = fb_render,

@@ -105,7 +105,6 @@ blend_u8(uint8_t s, uint8_t d, uint8_t a)
 static void
 pngi_lambda(uint8_t *color,
 		uint32_t x, uint32_t y,
-		backend_t *be,
 		void *context)
 {
 	pngi_ctx_t *pngi_ctx = context;
@@ -125,7 +124,7 @@ pngi_lambda(uint8_t *color,
 }
 
 static void
-pngi_render(backend_t *be, void *png,
+pngi_render(void *png,
 		uint32_t x, uint32_t y,
 		uint32_t cx, uint32_t cy,
 		uint32_t w, uint32_t h)
@@ -136,11 +135,11 @@ pngi_render(backend_t *be, void *png,
 		.cy = cy,
 	};
 
-	be->render(be, pngi_lambda, x, y, w, h, &pngi_ctx);
+	be.render(pngi_lambda, x, y, w, h, &pngi_ctx);
 }
 
-img_be_t png = {
-	.load = pngi_load,
-	.free = pngi_free,
-	.render = pngi_render,
-};
+void
+png_init(void)
+{
+	img_be_load("png", pngi_load, pngi_render, pngi_free);
+}

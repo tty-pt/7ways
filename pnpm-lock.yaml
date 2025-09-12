@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@tty-pt/qmap':
+        specifier: ^0.2.6
+        version: 0.2.6(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18))
       '@tty-pt/qsys':
         specifier: ^0.0.11
         version: 0.0.11(@tty-pt/mk@0.1.18)
@@ -17,6 +20,12 @@ packages:
   '@tty-pt/mk@0.1.18':
     resolution: {integrity: sha512-MDM/57scZVH6+w9YuQMKjOmLPCLrZAIck+vfY3u9TxpkRMld0/0+DJlxeswxlXFgEczPQrwkedqsOzXMey0Jpg==}
 
+  '@tty-pt/qmap@0.2.6':
+    resolution: {integrity: sha512-STYsmz1zPrsbUqGvTlqDinr1WXNhxqEMWJDwNy6ufmextv3Dhpm/9+IUTHe701Dcchj6R6mBxrwxKMOW3rmFFA==}
+    peerDependencies:
+      '@tty-pt/mk': ^0.1.18
+      '@tty-pt/qsys': ^0.0.11
+
   '@tty-pt/qsys@0.0.11':
     resolution: {integrity: sha512-55PgZ6/+eKvJo3boHSmOwrk+sduSIh6T5jN9lmx/4k4etTZymLQsHFfFWxzPYplAJ3U2RUh+4BMwkzVrAMpY8w==}
     peerDependencies:
@@ -25,6 +34,11 @@ packages:
 snapshots:
 
   '@tty-pt/mk@0.1.18': {}
+
+  '@tty-pt/qmap@0.2.6(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18))':
+    dependencies:
+      '@tty-pt/mk': 0.1.18
+      '@tty-pt/qsys': 0.0.11(@tty-pt/mk@0.1.18)
 
   '@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)':
     dependencies:
