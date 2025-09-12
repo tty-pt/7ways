@@ -1,7 +1,10 @@
 #include "../include/draw.h"
+#include "../include/img.h"
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <qsys.h>
+#include <png.h>
 
 typedef struct {
 	double time;
@@ -27,16 +30,11 @@ static void anime(uint8_t *color,
 	double px = (double) x * time / be->width;
 	double py = (double) y * time / be->height;
 
-	color[0] = (uint8_t) (UCHAR_MAX * px);
+	color[2] = (uint8_t) (UCHAR_MAX * px);
 	color[1] = (uint8_t) (UCHAR_MAX * py);
-	color[2] = (uint8_t) 0;
+	color[0] = (uint8_t) 0;
+	color[3] = UCHAR_MAX;
 }
-
-void fb_init(backend_t *be);
-void fb_deinit(backend_t *be);
-void fb_render(backend_t *be, draw_lambda_t *lambda,
-		uint32_t x, uint32_t y,
-		uint32_t w, uint32_t h, void *ctx);
 
 inline static double dt_get() {
 	long long tick = timestamp();
@@ -45,14 +43,13 @@ inline static double dt_get() {
 	return ret;
 }
 
-int main() {
-	backend_t be = {
-		.init = fb_init,
-		.deinit = fb_deinit,
-		.render = fb_render,
-	};
+extern img_be_t png;
+extern backend_t fb;
 
-	be.init(&be);
+int main() {
+	void *lamb = png.load("./resources/lamb.png");
+
+	fb.init(&fb);
 	double t = 0;
 
 	start_t = timestamp();
@@ -60,29 +57,26 @@ int main() {
 	while (t < 3) {
 		ctx_t ctx = { .time = t };
 
-		be.render(&be, anime, 0, 0,
-				be.width, be.height, &ctx);
+		fb.render(&fb, anime, 0, 0,
+				fb.width, fb.height, &ctx);
 		t += dt_get();
 	}
 
-	while (t < 5) {
-		ctx_t ctx = { .time = t };
+	fb.render(&fb, png.lambda, 0, 0,
+			200, 200, lamb);
 
-		be.render(&be, anime, 10, 10,
-				100, 100, &ctx);
-		t += dt_get();
-	}
-
-	uint32_t tw = be.width / 3, th = be.height / 3;
+	uint32_t tw = fb.width / 3, th = fb.height / 3;
 
 	while (t < 10) {
 		ctx_t ctx = { .time = t };
 
-		be.render(&be, anime, tw, th,
+		fb.render(&fb, anime, tw, th,
 				tw, th, &ctx);
 		t += dt_get();
 	}
 
-	be.deinit(&be);
+
+	fb.deinit(&fb);
+	png.free(lamb);
 	return 0;
 }

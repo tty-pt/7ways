@@ -1,10 +1,12 @@
 .SUFFIXES: .o .c
 
+LDLIBS := -lpng -lqsys
+
 .c.o:
 	${CC} -o $@ -c $<
 
-rpg: src/fb.o
-	${CC} -o $@ src/main.c $<
+rpg: src/fb.o src/png.o
+	${CC} -o $@ src/main.c $^ ${LDLIBS}
 
-rpg: src/main.c include/draw.h
-src/fb.o: src/fb.c include/draw.h
+src/fb.o: src/fb.c
+src/png.o: src/png.c

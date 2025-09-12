@@ -93,15 +93,9 @@ void fb_render(backend_t *be, draw_lambda_t *lambda,
 
 		uint32_t i = kc / sw;
 		uint32_t j = kc % sw;
-		uint32_t ix = j;
+		uint32_t ix = j - x;
 		uint32_t iy = sh - 1 - i;
-		uint8_t color[channels];
-		lambda(color, ix, iy, be, ctx);
-		pos[0] = color[2];
-		pos[1] = color[1];
-		pos[2] = color[0];
-		if (channels == 4)
-			pos[3] = UCHAR_MAX; // Alpha
+		lambda(pos, ix, i - y, be, ctx);
 	}
 
 	lseek(screen.frame_buffer_fd,
@@ -124,3 +118,9 @@ void fb_init(backend_t *be) {
 void fb_deinit(backend_t *be) {
 	screen_close(&screen);
 }
+
+backend_t fb = {
+	.init = fb_init,
+	.deinit = fb_deinit,
+	.render = fb_render,
+};
