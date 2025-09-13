@@ -40,7 +40,7 @@ inline static double dt_get() {
 	return ret;
 }
 
-extern void png_init(void);
+img_t pngi_load(const char *filename);
 
 int main() {
 	tm_t lamb;
@@ -48,7 +48,7 @@ int main() {
 	uint32_t tw, th;
 
 	img_init();
-	png_init();
+	img_be_load("png", pngi_load);
 
 	lamb = tm_load("./resources/lamb.png", 32, 32);
 

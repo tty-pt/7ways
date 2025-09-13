@@ -4,25 +4,15 @@
 #include <qsys.h>
 #include <png.h>
 
-typedef struct {
-	png_bytep *rows;
-} pngi_t;
-
-typedef struct {
-	pngi_t *pngi;
-	uint32_t cx, cy;
-} pngi_ctx_t;
-
-static img_t
+img_t
 pngi_load(const char *filename)
 {
 	FILE *fp = fopen(filename, "rb");
 	unsigned char header[8];
 	png_structp png;
 	img_t img;
-	pngi_t *pngi = malloc(sizeof(pngi_t));
-	int color_type, bit_depth;
 	png_bytep *rows;
+	int color_type, bit_depth;
 
 	CBUG(!fp, "fopen");
 
@@ -67,80 +57,37 @@ pngi_load(const char *filename)
 
 	 png_read_update_info(png, info);
 
-	 pngi->rows = malloc(sizeof(png_bytep) * img.h);
+	 img.data = malloc(img.w * img.h * 4);
+
+	 rows = malloc(sizeof(png_bytep) * img.h);
 
 	 for (int y = 0; y < img.h; y++)
-		 pngi->rows[y] = malloc(png_get_rowbytes(png,
+		 rows[y] = malloc(png_get_rowbytes(png,
 					 info));
 
-	 png_read_image(png, pngi->rows);
+	 png_read_image(png, rows);
+
+	 uint8_t *pos = img.data;
+
+	 for (int y = 0; y < img.h; y++) {
+		 png_bytep row = rows[y];
+
+		 for (int x = 0; x < img.w; x++, pos += 4) {
+			 png_byte *pixel = &(row[x * 4]);
+			 pos[0] = pixel[0];
+			 pos[1] = pixel[1];
+			 pos[2] = pixel[2];
+			 pos[3] = pixel[3];
+		 }
+	 }
 
 	 fclose(fp);
 	 png_destroy_read_struct(&png, &info, NULL);
 
-	 img.data = pngi;
+	 for (int y = 0; y < img.h; y++)
+		 free(rows[y]);
+
+	 free(rows);
+
 	 return img;
-}
-
-static void
-pngi_free(img_t *img)
-{
-	pngi_t *pngi = img->data;
-
-	for (int y = 0; y < img->h; y++)
-		free(pngi->rows[y]);
-
-	free(pngi->rows);
-	pngi->rows = NULL;
-}
-
-static inline uint8_t
-blend_u8(uint8_t s, uint8_t d, uint8_t a)
-{
-    return (uint8_t) ((s * (int) a
-			    + d * (int)(255 - a)
-			    + 127) / 255
-		    );
-}
-
-static void
-pngi_lambda(uint8_t *color,
-		uint32_t x, uint32_t y,
-		void *context)
-{
-	pngi_ctx_t *pngi_ctx = context;
-	pngi_t *png = context;
-
-	png_bytep row = pngi_ctx->pngi->rows[
-		pngi_ctx->cy + y
-	];
-
-	png_byte *pixel = &(row[
-			(pngi_ctx->cx + x) * 4
-	]);
-
-	color[2] = blend_u8(pixel[2], color[2], pixel[3]);
-	color[1] = blend_u8(pixel[1], color[1], pixel[3]);
-	color[0] = blend_u8(pixel[0], color[0], pixel[3]);
-}
-
-static void
-pngi_render(void *png,
-		uint32_t x, uint32_t y,
-		uint32_t cx, uint32_t cy,
-		uint32_t w, uint32_t h)
-{
-	pngi_ctx_t pngi_ctx = {
-		.pngi = png,
-		.cx = cx,
-		.cy = cy,
-	};
-
-	be.render(pngi_lambda, x, y, w, h, &pngi_ctx);
-}
-
-void
-png_init(void)
-{
-	img_be_load("png", pngi_load, pngi_render, pngi_free);
 }
