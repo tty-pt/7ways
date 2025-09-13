@@ -1,0 +1,53 @@
+#include "../include/draw.h"
+
+#include <stddef.h>
+
+screen_t screen;
+uint32_t be_width, be_height;
+
+void be_render(draw_lambda_t *lambda,
+		uint32_t x, uint32_t y,
+		uint32_t w, uint32_t h, void *ctx)
+{
+	uint32_t screen_size = screen.size;
+	uint32_t sw = be_width;
+	uint32_t sh = be_height;
+	uint8_t channels = screen.channels;
+	size_t offset = y * sw + x;
+	uint8_t *start = &screen.canvas[0]
+		+ offset * channels;
+	uint8_t *pos = start;
+
+	if (x < screen.min_x)
+		screen.min_x = x;
+
+	if (y < screen.min_y)
+		screen.min_y = y;
+
+	if (y + h > screen.max_y)
+		screen.max_y = y + h;
+
+	for (
+			uint32_t kce = (y + h) * sw,
+			kc = offset, kcm = kc + w;
+
+			kc < kce;
+
+			kc ++, pos += channels)
+	{
+		if (kc > kcm) {
+			kc += sw - w - 1;
+			if (kc >= kce)
+				break;
+			kcm = kc + w;
+			pos = &screen.canvas[0]
+				+ kc * channels;
+		}
+
+		uint32_t i = kc / sw;
+		uint32_t j = kc % sw;
+		uint32_t ix = j - x;
+		uint32_t iy = sh - 1 - i;
+		lambda(pos, ix, i - y, ctx);
+	}
+}

@@ -12,26 +12,14 @@
 #include <string.h>
 #include <limits.h>
 
-#define BYTE 8
-
-typedef struct {
-	uint32_t size;
-	uint8_t *canvas;
-	uint8_t channels;
-	uint32_t min_x, min_y, max_y;
-} screen_t;
-
-static screen_t screen;
-uint32_t be_width, be_height;
-
 static Display *g_dpy;
 static Window   g_win;
 static GLXContext g_ctx;
 static GLuint   g_tex;
 
-static void die(const char *msg) { perror(msg); exit(1); }
-
-static void glx_create_window(uint32_t w, uint32_t h) {
+static void
+glx_create_window(uint32_t w, uint32_t h)
+{
 	int att[] = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
 
 	g_dpy = XOpenDisplay(NULL);
@@ -93,43 +81,6 @@ gl_create_texture(uint32_t w, uint32_t h, const void *pixels)
 			GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 }
 
-void be_render(draw_lambda_t *lambda,
-		uint32_t x, uint32_t y,
-		uint32_t w, uint32_t h, void *ctx)
-{
-	const uint32_t sw = be_width;
-	const uint32_t sh = be_height;
-	const uint8_t  channels = screen.channels;
-
-	const uint32_t offset = y * sw + x;
-	uint8_t *pos = screen.canvas + (size_t) offset * channels;
-
-	if (x < screen.min_x)
-		screen.min_x = x;
-	if (y < screen.min_y)
-		screen.min_y = y;
-	if (y + h > screen.max_y)
-		screen.max_y = y + h;
-
-	uint32_t kc  = offset;
-	uint32_t kce = (y + h) * sw;
-	uint32_t kcm = kc + w;
-
-	for (; kc < kce; kc++, pos += channels) {
-		if (kc > kcm) {
-			kc += sw - w - 1;
-			if (kc >= kce) break;
-			kcm = kc + w;
-			pos = screen.canvas + (size_t)kc * channels;
-		}
-
-		uint32_t i  = kc / sw;
-		uint32_t j  = kc % sw;
-		uint32_t ix = j - x;
-		lambda(pos, ix, i - y, ctx);
-	}
-}
-
 void be_init(void) {
 	const char *env_w = getenv("BE_W");
 	const char *env_h = getenv("BE_H");
@@ -137,7 +88,7 @@ void be_init(void) {
 	be_width = env_w
 		? (uint32_t) strtoul(env_w, NULL, 10) : 1280;
 	be_height = env_h
-		? (uint32_t)strtoul(env_h, NULL, 10) : 720;
+		? (uint32_t) strtoul(env_h, NULL, 10) : 720;
 
 	glx_create_window(be_width, be_height);
 
@@ -147,7 +98,7 @@ void be_init(void) {
 			(size_t) screen.size,
 			screen.channels);
 
-	if (!screen.canvas) die("calloc canvas");
+	CBUG(!screen.canvas, "calloc");
 
 	screen.min_x = UINT_MAX;
 	screen.min_y = UINT_MAX;

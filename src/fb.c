@@ -9,23 +9,13 @@
 
 #define BYTE 8
 
-typedef struct {
-	uint32_t size;
-	uint8_t *canvas;
-	uint8_t channels;
-	int frame_buffer_fd;
-	uint32_t min_x, min_y,
-		 max_y;
-} screen_t;
-
-screen_t screen;
-uint32_t be_width, be_height;
+int fb_fd;
 
 static inline
 screen_t screen_new(void) {
 	struct fb_var_screeninfo vinfo;
 
-	int fb_fd = open("/dev/fb0", O_RDWR);
+	fb_fd = open("/dev/fb0", O_RDWR);
 	if (fb_fd == -1) {
 		perror("Error: cannot open framebuffer device");
 		exit(1);
@@ -59,7 +49,6 @@ screen_t screen_new(void) {
 	ans.canvas = canvas;
 	ans.size = screen_size;
 	ans.channels = color_channels;
-	ans.frame_buffer_fd = fb_fd;
 
 	pread(fb_fd, ans.canvas,
 			(size_t) screen_size * ans.channels,
@@ -68,57 +57,10 @@ screen_t screen_new(void) {
 	return ans;
 }
 
-void be_render(draw_lambda_t *lambda,
-		uint32_t x, uint32_t y,
-		uint32_t w, uint32_t h, void *ctx)
-{
-	uint32_t screen_size = screen.size;
-	uint32_t sw = be_width;
-	uint32_t sh = be_height;
-	uint8_t channels = screen.channels;
-	size_t offset = y * sw + x;
-	uint8_t *start = &screen.canvas[0]
-		+ offset * channels;
-	uint8_t *pos = start;
-
-	if (x < screen.min_x)
-		screen.min_x = x;
-
-	if (y < screen.min_y)
-		screen.min_y = y;
-
-	if (y + h > screen.max_y)
-		screen.max_y = y + h;
-
-	for (
-			uint32_t kce = (y + h) * sw,
-			kc = offset, kcm = kc + w;
-
-			kc < kce;
-
-			kc ++, pos += channels)
-	{
-		if (kc > kcm) {
-			kc += sw - w - 1;
-			if (kc >= kce)
-				break;
-			kcm = kc + w;
-			pos = &screen.canvas[0]
-				+ kc * channels;
-		}
-
-		uint32_t i = kc / sw;
-		uint32_t j = kc % sw;
-		uint32_t ix = j - x;
-		uint32_t iy = sh - 1 - i;
-		lambda(pos, ix, i - y, ctx);
-	}
-}
-
 static inline
 void screen_close(screen_t *screen) {
 	free(screen->canvas);
-	close(screen->frame_buffer_fd);
+	close(fb_fd);
 }
 
 void be_init(void) {
@@ -136,9 +78,6 @@ void be_flush(void) {
 	uint8_t *start = &screen.canvas[0]
 		+ offset * screen.channels;
 
-	lseek(screen.frame_buffer_fd,
-			offset * screen.channels, SEEK_SET);
-
-	write(screen.frame_buffer_fd,
-			start, (h * sw) * screen.channels);
+	lseek(fb_fd, offset * screen.channels, SEEK_SET);
+	write(fb_fd, start, (h * sw) * screen.channels);
 }

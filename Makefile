@@ -13,5 +13,5 @@ LDLIBS := -lpng -lqsys -lqmap ${LIB-${BE}}
 .c.o:
 	${CC} -o $@ -c $<
 
-rpg: src/main.c src/${BE}.o src/img.o src/png.o
+rpg: src/main.c src/be.o src/${BE}.o src/img.o src/png.o
 	${CC} -o $@ $^ ${LDFLAGS} ${LDLIBS}
