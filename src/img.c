@@ -90,13 +90,10 @@ img_render(img_t *img,
 {
 	img_ctx_t img_ctx = {
 		.img = img,
-		.cx = cx,
-		.cy = cy,
-		.sw = sw,
-		.sh = sh,
-		.dw = dw,
-		.dh = dh,
+		.cx = cx, .cy = cy,
+		.sw = sw, .sh = sh,
+		.dw = dw, .dh = dh,
 	};
 
-	be.render(img_lambda, x, y, dw, dh, &img_ctx);
+	be_render(img_lambda, x, y, dw, dh, &img_ctx);
 }

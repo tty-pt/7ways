@@ -19,6 +19,7 @@ typedef struct {
 } screen_t;
 
 screen_t screen;
+uint32_t be_width, be_height;
 
 static inline
 screen_t screen_new(void) {
@@ -53,8 +54,8 @@ screen_t screen_new(void) {
 	}
 
 	screen_t ans;
-	be.width = w;
-	be.height = h;
+	be_width = w;
+	be_height = h;
 	ans.canvas = canvas;
 	ans.size = screen_size;
 	ans.channels = color_channels;
@@ -67,13 +68,13 @@ screen_t screen_new(void) {
 	return ans;
 }
 
-void fb_render(draw_lambda_t *lambda,
+void be_render(draw_lambda_t *lambda,
 		uint32_t x, uint32_t y,
 		uint32_t w, uint32_t h, void *ctx)
 {
 	uint32_t screen_size = screen.size;
-	uint32_t sw = be.width;
-	uint32_t sh = be.height;
+	uint32_t sw = be_width;
+	uint32_t sh = be_height;
 	uint8_t channels = screen.channels;
 	size_t offset = y * sw + x;
 	uint8_t *start = &screen.canvas[0]
@@ -120,16 +121,16 @@ void screen_close(screen_t *screen) {
 	close(screen->frame_buffer_fd);
 }
 
-void fb_init(void) {
+void be_init(void) {
 	screen = screen_new();
 }
 
-void fb_deinit(void) {
+void be_deinit(void) {
 	screen_close(&screen);
 }
 
-void fb_flush(void) {
-	uint32_t sw = be.width;
+void be_flush(void) {
+	uint32_t sw = be_width;
 	uint32_t h = screen.max_y - screen.min_y;
 	size_t offset = screen.min_y * sw + screen.min_x;
 	uint8_t *start = &screen.canvas[0]
@@ -141,10 +142,3 @@ void fb_flush(void) {
 	write(screen.frame_buffer_fd,
 			start, (h * sw) * screen.channels);
 }
-
-backend_t be = {
-	.init = fb_init,
-	.deinit = fb_deinit,
-	.render = fb_render,
-	.flush = fb_flush,
-};

@@ -24,8 +24,8 @@ static void anime(uint8_t *color,
 {
 	double time = ((ctx_t *) context)->time;
 
-	double px = (double) x * time / be.width;
-	double py = (double) y * time / be.height;
+	double px = (double) x * time / be_width;
+	double py = (double) y * time / be_height;
 
 	color[2] = (uint8_t) (UCHAR_MAX * px);
 	color[1] = (uint8_t) (UCHAR_MAX * py);
@@ -52,30 +52,30 @@ int main() {
 
 	lamb = tm_load("./resources/lamb.png", 32, 32);
 
-	be.init();
+	be_init();
 	t = 0;
 
 	start_t = timestamp();
 
-	tw = be.width / 3;
-	th = be.height / 3;
+	tw = be_width / 3;
+	th = be_height / 3;
 
 	while (t < 13) {
 		ctx_t ctx = { .time = t };
 
-		be.render(anime, tw, th,
+		be_render(anime, 0, 0,
 				tw, th, &ctx);
 
 		tm_render(&lamb, tw, th,
 				((int) (t * 7.0)) % 6, 3,
 				256, 256);
 
-		be.flush();
+		be_flush();
 
 		t += dt_get();
 	}
 
-	be.deinit();
+	be_deinit();
 	img_free(&lamb.img);
 	return 0;
 }
