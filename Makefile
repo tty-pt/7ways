@@ -1,11 +1,14 @@
 .SUFFIXES: .o .c
 
-LDFLAGS := -L./node_modules/@tty-pt/qsys/lib
-LDFLAGS += -L./node_modules/@tty-pt/qmap/lib
+TTYLIBS := qmap qsys
+NPMLIBS := ${TTYLIBS:%=@tty-pt/%}
+NPMFLAGS := ${NPMLIBS:%=-L%/lib}
+
+LDFLAGS := ${NPMFLAGS}
 LDLIBS := -lpng -lqsys -lqmap
 
 .c.o:
 	${CC} -o $@ -c $<
 
-rpg: src/fb.o src/img.o src/png.o src/tm.o
-	${CC} -o $@ src/main.c $^ ${LDFLAGS} ${LDLIBS}
+rpg: src/main.c src/fb.o src/img.o src/png.o
+	${CC} -o $@ $^ ${LDFLAGS} ${LDLIBS}

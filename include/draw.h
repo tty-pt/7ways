@@ -17,7 +17,7 @@ typedef void draw_render_t(draw_lambda_t *lambda,
 typedef void draw_init_t(void);
 
 typedef struct backend {
-	draw_init_t *init, *deinit;
+	draw_init_t *init, *deinit, *flush;
 	draw_render_t *render;
 	uint32_t width, height;
 } backend_t;

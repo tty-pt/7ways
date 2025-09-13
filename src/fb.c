@@ -14,6 +14,8 @@ typedef struct {
 	uint8_t *canvas;
 	uint8_t channels;
 	int frame_buffer_fd;
+	uint32_t min_x, min_y,
+		 max_y;
 } screen_t;
 
 screen_t screen;
@@ -78,6 +80,15 @@ void fb_render(draw_lambda_t *lambda,
 		+ offset * channels;
 	uint8_t *pos = start;
 
+	if (x < screen.min_x)
+		screen.min_x = x;
+
+	if (y < screen.min_y)
+		screen.min_y = y;
+
+	if (y + h > screen.max_y)
+		screen.max_y = y + h;
+
 	for (
 			uint32_t kce = (y + h) * sw,
 			kc = offset, kcm = kc + w;
@@ -101,12 +112,6 @@ void fb_render(draw_lambda_t *lambda,
 		uint32_t iy = sh - 1 - i;
 		lambda(pos, ix, i - y, ctx);
 	}
-
-	lseek(screen.frame_buffer_fd,
-			offset * channels, SEEK_SET);
-
-	write(screen.frame_buffer_fd,
-			start, (h * sw) * channels);
 }
 
 static inline
@@ -123,8 +128,23 @@ void fb_deinit(void) {
 	screen_close(&screen);
 }
 
+void fb_flush(void) {
+	uint32_t sw = be.width;
+	uint32_t h = screen.max_y - screen.min_y;
+	size_t offset = screen.min_y * sw + screen.min_x;
+	uint8_t *start = &screen.canvas[0]
+		+ offset * screen.channels;
+
+	lseek(screen.frame_buffer_fd,
+			offset * screen.channels, SEEK_SET);
+
+	write(screen.frame_buffer_fd,
+			start, (h * sw) * screen.channels);
+}
+
 backend_t be = {
 	.init = fb_init,
 	.deinit = fb_deinit,
 	.render = fb_render,
+	.flush = fb_flush,
 };

@@ -8,7 +8,19 @@ typedef struct {
 	uint32_t w, h, nx, ny;
 } tm_t;
 
-tm_t tm_load(char *filename, uint32_t w, uint32_t h);
+static inline tm_t
+tm_load(char *filename, uint32_t w, uint32_t h)
+{
+	tm_t tm;
+
+	tm.img = img_load(filename);
+	tm.w = w;
+	tm.h = h;
+	tm.nx = tm.img.w / w;
+	tm.ny = tm.img.h / h;
+
+	return tm;
+}
 
 static inline void
 tm_render(tm_t *tm, uint32_t x, uint32_t y,

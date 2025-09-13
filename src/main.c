@@ -1,5 +1,5 @@
 #include "../include/draw.h"
-#include "../include/tilemap.h"
+#include "../include/tm.h"
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -60,14 +60,16 @@ int main() {
 	tw = be.width / 3;
 	th = be.height / 3;
 
-	while (t < 10) {
+	while (t < 13) {
 		ctx_t ctx = { .time = t };
 
 		be.render(anime, tw, th,
 				tw, th, &ctx);
 
-		tm_render(&lamb, tw * 2 - 64, th * 2 - 64,
+		tm_render(&lamb, tw, th,
 				((int) (t * 3.0)) % 6, 3);
+
+		be.flush();
 
 		t += dt_get();
 	}
