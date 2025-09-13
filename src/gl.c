@@ -76,9 +76,9 @@ gl_create_texture(uint32_t w, uint32_t h, const void *pixels)
 			GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA,
 			(GLsizei)w, (GLsizei)h, 0,
-			GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+			GL_BGRA, GL_UNSIGNED_BYTE, pixels);
 }
 
 void be_init(void) {
@@ -121,7 +121,7 @@ void be_flush(void) {
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
 			(GLsizei)be_width, (GLsizei)be_height,
-			GL_RGBA, GL_UNSIGNED_BYTE, screen.canvas);
+			GL_BGRA, GL_UNSIGNED_BYTE, screen.canvas);
 	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT);
 
