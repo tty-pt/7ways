@@ -63,7 +63,7 @@ int main() {
 	while (t < 13) {
 		ctx_t ctx = { .time = t };
 
-		be_render(anime, 0, 0,
+		be_render(anime, tw, th,
 				tw, th, &ctx);
 
 		tm_render(&lamb, tw, th,
