@@ -24,11 +24,18 @@ tm_load(char *filename, uint32_t w, uint32_t h)
 
 static inline void
 tm_render(tm_t *tm, uint32_t x, uint32_t y,
-		uint32_t nx, uint32_t ny)
+		uint32_t nx, uint32_t ny,
+		uint32_t w, uint32_t h)
 {
+	if (!w)
+		w = tm->w;
+	if (!h)
+		h = tm->h;
+
 	img_render(&tm->img, x, y,
 			nx * tm->w, ny * tm->h,
-			tm->w, tm->h);
+			tm->w, tm->h,
+			w, h);
 }
 
 #endif

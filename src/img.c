@@ -6,7 +6,7 @@
 
 typedef struct {
 	img_t *img;
-	uint32_t cx, cy;
+	uint32_t cx, cy, sw, sh, dw, dh;
 } img_ctx_t;
 
 static unsigned img_be_hd;
@@ -52,16 +52,28 @@ blend_u8(uint8_t s, uint8_t d, uint8_t a)
 		    );
 }
 
+static inline uint32_t
+map_coord(uint32_t d, uint32_t D, uint32_t S)
+{
+    if (D <= 1 || S == 0) return 0;
+    return (uint32_t)(((uint64_t)d * (S - 1)) / (D - 1));
+}
+
 static void
 img_lambda(uint8_t *color,
 		uint32_t x, uint32_t y,
 		void *context)
 {
-	img_ctx_t *pngi_ctx = context;
+	img_ctx_t *c = context;
+	uint32_t sx = c->cx + map_coord(x, c->dw, c->sw);
+	uint32_t sy = c->cy + map_coord(y, c->dh, c->sh);
 
-	uint8_t *pixel = &pngi_ctx->img->data[
-		((pngi_ctx->cy + y) * pngi_ctx->img->w
-		 + (pngi_ctx->cx + x)) * 4
+	/* clamp defensivo */
+	if (sx >= c->img->w)  sx = c->img->w  - 1;
+	if (sy >= c->img->h)  sy = c->img->h  - 1;
+
+	uint8_t *pixel = &c->img->data[
+		(sy * c->img->w + sx) * 4
 	];
 
 	color[2] = blend_u8(pixel[2], color[2], pixel[3]);
@@ -71,15 +83,20 @@ img_lambda(uint8_t *color,
 
 void
 img_render(img_t *img,
-		uint32_t x, uint32_t y,
-		uint32_t cx, uint32_t cy,
-		uint32_t w, uint32_t h)
+                 uint32_t x, uint32_t y,
+                 uint32_t cx, uint32_t cy,
+                 uint32_t sw, uint32_t sh,
+                 uint32_t dw, uint32_t dh)
 {
-	img_ctx_t pngi_ctx = {
+	img_ctx_t img_ctx = {
 		.img = img,
 		.cx = cx,
 		.cy = cy,
+		.sw = sw,
+		.sh = sh,
+		.dw = dw,
+		.dh = dh,
 	};
 
-	be.render(img_lambda, x, y, w, h, &pngi_ctx);
+	be.render(img_lambda, x, y, dw, dh, &img_ctx);
 }

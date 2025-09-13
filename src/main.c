@@ -67,7 +67,8 @@ int main() {
 				tw, th, &ctx);
 
 		tm_render(&lamb, tw, th,
-				((int) (t * 3.0)) % 6, 3);
+				((int) (t * 7.0)) % 6, 3,
+				256, 256);
 
 		be.flush();
 
