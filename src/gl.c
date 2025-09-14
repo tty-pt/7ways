@@ -108,6 +108,7 @@ void be_init(void) {
 }
 
 void be_flush(void) {
+	/*
 	while (XPending(g_dpy)) {
 		XEvent ev; XNextEvent(g_dpy, &ev);
 		if (ev.type == ConfigureNotify) {
@@ -115,6 +116,7 @@ void be_flush(void) {
 			// re-aloca canvas e recria textura (omitido para simplicidade)
 		}
 	}
+	*/
 
 	glBindTexture(GL_TEXTURE_2D, g_tex);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

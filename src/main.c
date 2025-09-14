@@ -1,5 +1,6 @@
 #include "../include/draw.h"
-#include "../include/tm.h"
+#include "../include/sprite.h"
+#include "../include/input.h"
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -9,6 +10,8 @@ typedef struct {
 } ctx_t;
 
 long long start_t;
+double t;
+sprite_t lamb;
 
 static long long
 timestamp(void)
@@ -42,15 +45,42 @@ inline static double dt_get() {
 
 img_t pngi_load(const char *filename);
 
+void turn_down(unsigned short type, int value)
+{
+	lamb.n = 0;
+}
+
+void turn_up(unsigned short type, int value)
+{
+	lamb.n = 1;
+}
+
+void turn_left(unsigned short type, int value)
+{
+	lamb.n = 2;
+}
+
+void turn_right(unsigned short type, int value)
+{
+	lamb.n = 3;
+}
+
 int main() {
-	tm_t lamb;
-	double t;
 	uint32_t tw, th;
 
 	img_init();
 	img_be_load("png", pngi_load);
 
-	lamb = tm_load("./resources/lamb.png", 32, 32);
+	input_gen_init();
+	input_init(0);
+	input_reg(35, turn_left);
+	input_reg(36, turn_down);
+	input_reg(37, turn_up);
+	input_reg(38, turn_right);
+
+	lamb.tm = tm_load("./resources/lamb.png", 32, 32);
+	lamb.n = 3;
+	lamb.speed = 7.0;
 
 	be_init();
 	t = 0;
@@ -60,22 +90,23 @@ int main() {
 	tw = be_width / 3;
 	th = be_height / 3;
 
-	while (t < 13) {
+	while (t < 30) {
 		ctx_t ctx = { .time = t };
 
 		be_render(anime, tw, th,
 				tw, th, &ctx);
 
-		tm_render(&lamb, tw, th,
-				((int) (t * 7.0)) % 6, 3,
-				256, 256);
+		sprite_render(&lamb, tw, th, 256, 256);
+
+		input_poll();
 
 		be_flush();
 
 		t += dt_get();
 	}
 
+	input_deinit();
 	be_deinit();
-	img_free(&lamb.img);
+	img_free(&lamb.tm.img);
 	return 0;
 }

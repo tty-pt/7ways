@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include <qsys.h>
+
 #define BYTE 8
 
 int fb_fd;
@@ -32,16 +34,14 @@ screen_t screen_new(void) {
 	int color_channels = vinfo.bits_per_pixel / BYTE;
 	long screen_size = w * h;
 
-	printf("Framebuffer size: width=%d, height=%d, channels=%d\n", w, h,
-			color_channels);
+	WARN("Framebuffer size: width=%d, height=%d, "
+			"channels=%d\n", w, h, color_channels);
 
-	// We avoid mmap for double buffering simulation
-	uint8_t *canvas = (uint8_t *)malloc(sizeof(uint8_t) * screen_size * color_channels);
-	if (!canvas) {
-		perror("Failed to allocate canvas buffer");
-		close(fb_fd);
-		exit(3);
-	}
+	uint8_t *canvas = (uint8_t *) malloc(
+			sizeof(uint8_t) * screen_size
+			* color_channels);
+
+	CBUG(!canvas, "Failed to allocate canvas buffer");
 
 	screen_t ans;
 	be_width = w;
@@ -50,9 +50,8 @@ screen_t screen_new(void) {
 	ans.size = screen_size;
 	ans.channels = color_channels;
 
-	pread(fb_fd, ans.canvas,
-			(size_t) screen_size * ans.channels,
-			0);
+	pread(fb_fd, ans.canvas, (size_t) screen_size
+			* ans.channels, 0);
 
 	return ans;
 }
