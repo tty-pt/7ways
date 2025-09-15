@@ -1,35 +1,28 @@
 #include "../include/input.h"
 
-#include <qmap.h>
+#include <stddef.h>
 
 typedef struct {
 	input_cb_t *cb;
 } input_t;
 
-unsigned input_hd;
+static input_t cbs[256];
 
-input_cb_t *
-input_cb(unsigned short key)
+void
+input_call(unsigned short code,
+		unsigned short value,
+		int type)
 {
-	const input_t *inp = qmap_get(input_hd, &key);
+	input_t *inp = &cbs[code];
 
-	if (!inp)
-		return NULL;
+	if (!inp->cb)
+		return;
 
-	return inp->cb;
+	inp->cb(code, value, type);
 }
 
 void
 input_reg(unsigned short key, input_cb_t *cb)
 {
-	input_t inp = { .cb = cb };
-	qmap_put(input_hd, &key, &inp);
-}
-
-void input_gen_init(void) {
-	unsigned qm_us
-		= qmap_reg(sizeof(unsigned short));
-	unsigned qm_icb
-		= qmap_reg(sizeof(input_t));
-	input_hd = qmap_open(qm_us, qm_icb, 0xFF, 0);
+	cbs[key].cb = cb;
 }

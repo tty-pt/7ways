@@ -12,8 +12,8 @@
 #include <string.h>
 #include <limits.h>
 
-static Display *g_dpy;
-static Window   g_win;
+Display *g_dpy;
+Window   g_win;
 static GLXContext g_ctx;
 static GLuint   g_tex;
 

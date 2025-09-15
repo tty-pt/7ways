@@ -45,22 +45,26 @@ inline static double dt_get() {
 
 img_t pngi_load(const char *filename);
 
-void turn_down(unsigned short type, int value)
+void turn_down(unsigned short code,
+		unsigned short type, int value)
 {
 	lamb.n = 0;
 }
 
-void turn_up(unsigned short type, int value)
+void turn_up(unsigned short code,
+		unsigned short type, int value)
 {
 	lamb.n = 1;
 }
 
-void turn_left(unsigned short type, int value)
+void turn_left(unsigned short code,
+		unsigned short type, int value)
 {
 	lamb.n = 2;
 }
 
-void turn_right(unsigned short type, int value)
+void turn_right(unsigned short code,
+		unsigned short type, int value)
 {
 	lamb.n = 3;
 }
@@ -71,8 +75,6 @@ int main() {
 	img_init();
 	img_be_load("png", pngi_load);
 
-	input_gen_init();
-	input_init(0);
 	input_reg(35, turn_left);
 	input_reg(36, turn_down);
 	input_reg(37, turn_up);
@@ -83,6 +85,7 @@ int main() {
 	lamb.speed = 7.0;
 
 	be_init();
+	input_init(0);
 	t = 0;
 
 	start_t = timestamp();

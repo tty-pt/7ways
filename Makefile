@@ -4,9 +4,13 @@ TTYLIBS := qmap qsys
 NPMLIBS := ${TTYLIBS:%=@tty-pt/%}
 NPMFLAGS := ${NPMLIBS:%=-L%/lib}
 
-BE := fb
+BE := gl
 LIB-gl := -lX11 -lGL
-INPUT-BE := dev
+INPUT-fb := dev
+INPUT-gl := x
+
+obj-y := be ${BE} img png input
+obj-y += input-${INPUT-${BE}}
 
 LDFLAGS := ${NPMFLAGS}
 LDLIBS := -lpng -lqsys -lqmap ${LIB-${BE}}
@@ -14,5 +18,5 @@ LDLIBS := -lpng -lqsys -lqmap ${LIB-${BE}}
 .c.o:
 	${CC} -o $@ -c $<
 
-rpg: src/main.c src/be.o src/${BE}.o src/img.o src/png.o src/input-${INPUT-BE}.o src/input.o
+rpg: src/main.c ${obj-y:%=src/%.o}
 	${CC} -o $@ $^ ${LDFLAGS} ${LDLIBS}
