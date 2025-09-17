@@ -77,7 +77,7 @@ gl_create_texture(uint32_t w, uint32_t h, const void *pixels)
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA,
-			(GLsizei)w, (GLsizei)h, 0,
+			(GLsizei) w, (GLsizei) h, 0,
 			GL_BGRA, GL_UNSIGNED_BYTE, pixels);
 }
 

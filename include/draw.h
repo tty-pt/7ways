@@ -20,7 +20,7 @@ extern screen_t screen;
 void be_init(void);
 
 void be_render(draw_lambda_t *lambda,
-		uint32_t x, uint32_t y,
+		int32_t x, int32_t y,
 		uint32_t w, uint32_t h,
 		void *ctx);
 

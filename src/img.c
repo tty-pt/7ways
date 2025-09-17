@@ -6,10 +6,11 @@
 
 typedef struct {
 	img_t *img;
-	uint32_t cx, cy, sw, sh, dw, dh;
+	uint32_t cx, cy, sw, sh, dw, dh,
+		 doffx, doffy;
 } img_ctx_t;
 
-static unsigned img_be_hd;
+static unsigned img_be_hd, img_hd;
 
 void img_be_load(char *ext,
 		img_load_t *load)
@@ -24,8 +25,21 @@ void img_be_load(char *ext,
 void
 img_init(void)
 {
-	unsigned qm_img_be = qmap_reg(sizeof(img_be_t));
+	unsigned qm_img_be = qmap_reg(sizeof(img_be_t)),
+		 qm_img = qmap_reg(sizeof(img_t));
+
 	img_be_hd = qmap_open(QM_STR, qm_img_be, 0xF, 0);
+	img_hd = qmap_open(QM_STR, qm_img, 0xF, 0);
+}
+
+void
+img_deinit(void)
+{
+	unsigned cur = qmap_iter(img_hd, NULL, 0);
+	const void *key, *value;
+
+	while (qmap_next(&key, &value, cur))
+		img_free((img_t *) value);
 }
 
 img_t img_load(char *filename) {
@@ -40,6 +54,8 @@ img_t img_load(char *filename) {
 
 	ret = be->load(filename);
 	ret.be = be;
+
+	qmap_put(img_hd, NULL, &ret);
 	return ret;
 }
 
@@ -53,10 +69,14 @@ blend_u8(uint8_t s, uint8_t d, uint8_t a)
 }
 
 static inline uint32_t
-map_coord(uint32_t d, uint32_t D, uint32_t S)
+map_coord_off(uint32_t d, uint32_t doff, uint32_t D_full,
+		uint32_t S)
 {
-    if (D <= 1 || S == 0) return 0;
-    return (uint32_t)(((uint64_t)d * (S - 1)) / (D - 1));
+	if (D_full <= 1 || S == 0)
+		return 0;
+
+	return (uint32_t)(((uint64_t) (d + doff) * (S - 1))
+			/ (D_full - 1));
 }
 
 static void
@@ -65,35 +85,68 @@ img_lambda(uint8_t *color,
 		void *context)
 {
 	img_ctx_t *c = context;
-	uint32_t sx = c->cx + map_coord(x, c->dw, c->sw);
-	uint32_t sy = c->cy + map_coord(y, c->dh, c->sh);
+	uint32_t sx = c->cx + map_coord_off(x, c->doffx,
+			c->dw, c->sw);
+	uint32_t sy = c->cy + map_coord_off(y, c->doffy,
+			c->dh, c->sh);
 
 	/* clamp defensivo */
-	if (sx >= c->img->w)  sx = c->img->w  - 1;
-	if (sy >= c->img->h)  sy = c->img->h  - 1;
+	if (sx >= c->img->w)
+		sx = c->img->w - 1;
+
+	if (sy >= c->img->h)
+		sy = c->img->h - 1;
 
 	uint8_t *pixel = &c->img->data[
 		(sy * c->img->w + sx) * 4
 	];
 
-	color[2] = blend_u8(pixel[2], color[2], pixel[3]);
+	color[0] = blend_u8(pixel[2], color[0], pixel[3]);
 	color[1] = blend_u8(pixel[1], color[1], pixel[3]);
-	color[0] = blend_u8(pixel[0], color[0], pixel[3]);
+	color[2] = blend_u8(pixel[0], color[2], pixel[3]);
 }
 
 void
 img_render(img_t *img,
-                 uint32_t x, uint32_t y,
+                 int32_t x, int32_t y,
                  uint32_t cx, uint32_t cy,
                  uint32_t sw, uint32_t sh,
                  uint32_t dw, uint32_t dh)
 {
-	img_ctx_t img_ctx = {
+
+	uint32_t full_dw = dw, full_dh = dh;
+
+	uint32_t doffx = 0, doffy = 0;
+
+	if (x < 0) {
+		uint32_t cut = (uint32_t)(-x);
+
+		if (cut >= dw)
+			return;
+
+		doffx = cut;
+		x += (int32_t) cut;
+		dw -= cut;
+	}
+
+	if (y < 0) {
+		uint32_t cut = (uint32_t)(-y);
+
+		if (cut >= dh)
+			return;
+
+		doffy = cut;
+		y += (int32_t)cut;
+		dh -= cut;
+	}
+
+	img_ctx_t ctx = {
 		.img = img,
 		.cx = cx, .cy = cy,
 		.sw = sw, .sh = sh,
-		.dw = dw, .dh = dh,
+		.dw = full_dw, .dh = full_dh,
+		.doffx = doffx, .doffy = doffy,
 	};
 
-	be_render(img_lambda, x, y, dw, dh, &img_ctx);
+	be_render(img_lambda, x, y, dw, dh, &ctx);
 }

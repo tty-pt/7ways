@@ -6,7 +6,7 @@ screen_t screen;
 uint32_t be_width, be_height;
 
 void be_render(draw_lambda_t *lambda,
-		uint32_t x, uint32_t y,
+		int32_t x, int32_t y,
 		uint32_t w, uint32_t h, void *ctx)
 {
 	uint32_t screen_size = screen.size;
@@ -17,6 +17,12 @@ void be_render(draw_lambda_t *lambda,
 	uint8_t *start = &screen.canvas[0]
 		+ offset * channels;
 	uint8_t *pos = start;
+
+	if (x + w > be_width)
+		w = be_width - x;
+
+	if (y + h > be_height)
+		h = be_height - y;
 
 	if (x < screen.min_x)
 		screen.min_x = x;
