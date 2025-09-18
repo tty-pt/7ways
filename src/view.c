@@ -45,8 +45,8 @@ view_render(void)
 	quad_s[1] = cam.y;
 	quad_s[2] = 0;
 
-	quad_l[0] = w + 1;
-	quad_l[1] = h + 1;
+	quad_l[0] = w + 2;
+	quad_l[1] = h + 2;
 	quad_l[2] = 1;
 
 	unsigned cur = geo_iter(map_hd, quad_s, quad_l, dim);
@@ -88,6 +88,7 @@ view_load(char *filename) {
 	char line[BUFSIZ];
 	FILE *fp = fopen("./map.txt", "r");
 	char *space, *word, *ret;
+	unsigned n = 0;
 
 	CBUG(!fp, "couldn't open %s\n", filename);
 
@@ -192,19 +193,20 @@ view_load(char *filename) {
 			char *s = line;
 			ret = fgets(line, sizeof(line), fp);
 			CBUG(!ret, "file input end: M\n");
-			space = strchr(line, '\n');
-			CBUG(!space, "file input end: N\n");
-			*space = '\0';
 			fprintf(stderr, "line %s\n", line);
 
 			for (uint16_t iw = 0; iw < w; iw ++, s++)
 			{
 				unsigned stile_ref = (unsigned) (*s - 'b');
-				fprintf(stderr, "put %u %d %d %d\n", stile_ref, iw, ih, id);
+				fprintf(stderr, "put %u %d %d %d\n",
+						stile_ref, iw, ih, id);
 				mymap_put(iw, ih, id, stile_ref);
+				n++;
 			}
 		}
 	}
+
+	fprintf(stderr, "loaded %u tiles\n", n);
 }
 
 void

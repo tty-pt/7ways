@@ -35,7 +35,7 @@ void turn_right(unsigned short code,
 
 int main() {
 	double dt;
-	double lamb_speed = 1;
+	double lamb_speed = 2;
 
 	game_init();
 
