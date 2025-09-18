@@ -9,6 +9,7 @@
 #include <sys/inotify.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <termios.h>
 #include <unistd.h>
 
 #ifndef EV_BUFSZ
@@ -24,6 +25,7 @@ typedef struct {
 static int epfd = -1, inofd = -1, grab_all = 0;
 static idev_t devs[128];
 static int ndev = 0;
+static struct termios orig_termios;
 
 static int input_index(dev_t r) {
 	for (int i = 0; i < ndev; i++)
@@ -94,6 +96,30 @@ static void input_iscan(void) {
 	closedir(dir);
 }
 
+
+void tty_raw(void) {
+
+	struct termios t;
+
+	if (tcgetattr(STDIN_FILENO, &orig_termios) < 0) {
+		perror("tcgetattr");
+		return;
+	}
+
+	t = orig_termios;
+	t.c_lflag &= ~(ICANON | ECHO);
+	t.c_cc[VMIN]  = 1;
+	t.c_cc[VTIME] = 0;
+
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &t) < 0) {
+		perror("tcsetattr");
+	}
+}
+
+void tty_restore(void) {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
+
 void input_init(int grab) {
 	grab_all = grab ? 1 : 0;
 	epfd = epoll_create1(EPOLL_CLOEXEC);
@@ -108,6 +134,7 @@ void input_init(int grab) {
 
 	epoll_ctl(epfd, EPOLL_CTL_ADD, inofd, &ev);
 	input_iscan();
+	tty_raw();
 }
 
 static void input_close(int idx) {
@@ -218,4 +245,5 @@ void input_deinit(void) {
 		close(epfd);
 
 	inofd = epfd = -1;
+	tty_restore();
 }

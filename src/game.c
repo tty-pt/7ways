@@ -27,7 +27,11 @@ game_deinit(void)
 }
 
 double
-game_events(void) {
+game_update(void) {
+	double dt;
+	be_flush();
+	dt = dt_get();
+	view_update(dt);
 	input_poll();
 	be_flush();
 	return dt_get();

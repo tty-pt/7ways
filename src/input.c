@@ -2,11 +2,14 @@
 
 #include <stddef.h>
 
+#include <qsys.h>
+
 typedef struct {
 	input_cb_t *cb;
 } input_t;
 
 static input_t cbs[256];
+unsigned keys[256];
 
 void
 input_call(unsigned short code,
@@ -14,6 +17,8 @@ input_call(unsigned short code,
 		int type)
 {
 	input_t *inp = &cbs[code];
+	keys[code] = value;
+	/* WARN("key: %hu %hu %d\n", code, value, type); */
 
 	if (!inp->cb)
 		return;
@@ -25,4 +30,10 @@ void
 input_reg(unsigned short key, input_cb_t *cb)
 {
 	cbs[key].cb = cb;
+}
+
+unsigned short
+key_value(unsigned short code)
+{
+	return keys[code];
 }

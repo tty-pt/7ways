@@ -1,82 +1,61 @@
-#include "../include/sprite.h"
+#include "../include/tile.h"
 #include "../include/input.h"
 #include "../include/view.h"
 #include "../include/game.h"
 #include "../include/shader.h"
+#include "../include/char.h"
 
 img_t lamb_img;
-sprite_t lamb;
+unsigned cont = 1;
+unsigned lamb;
 
 extern double hw, hh;
 
-void turn_down(unsigned short code,
+void key_quit(unsigned short code,
 		unsigned short type, int value)
 {
-	lamb.n = 0;
+	cont = 0;
 }
 
-void turn_up(unsigned short code,
-		unsigned short type, int value)
-{
-	lamb.n = 1;
+void ensure_move(enum dir dir) {
+	if (char_animation(lamb) == AN_WALK)
+		return;
+	char_face(lamb, dir);
+	char_animate(lamb, AN_WALK);
 }
 
-void turn_left(unsigned short code,
-		unsigned short type, int value)
-{
-	lamb.n = 2;
-}
-
-void turn_right(unsigned short code,
-		unsigned short type, int value)
-{
-	lamb.n = 3;
+void
+my_update(void) {
+	if (key_value(KEY_J) || key_value(KEY_DOWN))
+		ensure_move(DIR_DOWN);
+	if (key_value(KEY_K) || key_value(KEY_UP))
+		ensure_move(DIR_UP);
+	if (key_value(KEY_H) || key_value(KEY_LEFT))
+		ensure_move(DIR_LEFT);
+	if (key_value(KEY_L) || key_value(KEY_RIGHT))
+		ensure_move(DIR_RIGHT);
 }
 
 int main() {
-	double dt;
 	double lamb_speed = 2;
 
 	game_init();
 
-	input_reg(35, turn_left);
-	input_reg(36, turn_down);
-	input_reg(37, turn_up);
-	input_reg(38, turn_right);
+	input_reg(KEY_Q, key_quit);
+	input_reg(KEY_ESC, key_quit);
 
 	unsigned lamb_img = img_load("./resources/lamb.png");
-	lamb.tm_ref = tm_load(lamb_img, 32, 32);
-	lamb.n = 3;
-	lamb.speed = 7.0;
+	unsigned lamb_tm = tm_load(lamb_img, 32, 32);
+	lamb = char_load(lamb_tm, 0, 0);
 
 	game_start();
 
-	while (time_tick < 30) {
+	while (cont) {
 		shader_render();
 		view_render();
-
-		sprite_render(&lamb,
-				hw - 16.0 * cam.zoom,
-				hh - 16.0 * cam.zoom,
-				32 * cam.zoom,
-				32 * cam.zoom);
-
-		dt = game_events();
-
-		switch (lamb.n) {
-			case 0:
-				cam.y += dt * lamb_speed;
-				break;
-			case 1:
-				cam.y -= dt * lamb_speed;
-				break;
-			case 2:
-				cam.x -= dt * lamb_speed;
-				break;
-			case 3:
-				cam.x += dt * lamb_speed;
-				break;
-		}
+		game_update();
+		my_update();
+		char_pos(&cam.x, &cam.y, lamb);
 	}
 
 	game_deinit();

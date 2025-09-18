@@ -1,6 +1,8 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include <linux/input-event-codes.h>
+
 typedef void input_cb_t(unsigned short code,
 		unsigned short type,
 		int value);
@@ -15,5 +17,7 @@ void input_reg(unsigned short key,
 void input_call(unsigned short code,
 		unsigned short value,
 		int type);
+
+unsigned short key_value(unsigned short code);
 
 #endif

@@ -19,11 +19,7 @@ typedef struct {
 	int16_t x, y;
 } tile_t;
 
-typedef struct {
-	unsigned tm_ref;
-	uint32_t n;
-	double speed;
-} sprite_t;
+extern double sprite_speed;
 
 void tm_init(void);
 unsigned tm_load(unsigned img_ref, uint32_t w, uint32_t h);
@@ -34,7 +30,4 @@ void tm_render(unsigned ref,
 		uint32_t nx, uint32_t ny,
 		uint32_t w, uint32_t h);
 
-void sprite_render(sprite_t *sprite,
-		uint32_t x, uint32_t y,
-		uint32_t sx, uint32_t sy);
 #endif
