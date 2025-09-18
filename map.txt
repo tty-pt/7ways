@@ -1,0 +1,26 @@
+16 ./resources/Pixel Crawler - Free Pack/Environment/Tilesets/Floors_Tiles.png
+
+0 12 10
+0 11 11
+0 11 9
+0 11 8
+
+7 7 1
+
+bcbbbbb
+bbcbbbb
+bcbdbbb
+bbcbbdb
+bcbcebb
+bbcbbdb
+bbbbcbb
+
+32 ./resources/lamb.png
+
+aaaaaaa
+aabaaaa
+aaaaaaa
+aaaaaaa
+aaaaaaa
+aaaaaaa
+aaaaaaa

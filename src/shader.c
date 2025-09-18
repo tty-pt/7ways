@@ -10,8 +10,6 @@ typedef struct {
 	double time;
 } ctx_t;
 
-extern uint32_t hw, hh;
-
 static void shader_lambda(uint8_t *color,
 		uint32_t x, uint32_t y,
 		void *context)

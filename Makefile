@@ -9,13 +9,13 @@ LIB-gl := -lX11 -lGL
 INPUT-fb := dev
 INPUT-gl := x
 
-LDFLAGS := -L/usr/local/lib ${NPMFLAGS}
-LDLIBS := -lpng ${TTYLIBS:%=-l%} ${LIB-${BE}}
+LDFLAGS := ${NPMFLAGS}
+LDLIBS := -lm -lpng ${TTYLIBS:%=-l%} ${LIB-${BE}}
 
 obj-y := game time be ${BE}
 obj-y += img png
 obj-y += input input-${INPUT-${BE}}
-obj-y += view
+obj-y += tile view
 
 obj-y += shader
 

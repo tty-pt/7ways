@@ -4,13 +4,14 @@
 #include "./img.h"
 
 typedef struct {
-	img_t *img;
+	unsigned img;
 	uint32_t w, h, nx, ny;
 } tm_t;
 
 typedef struct {
-	tm_t *tm;
-	unsigned tm_x, tm_y, flags;
+	unsigned tm_ref,
+		 tm_x, tm_y,
+		 flags;
 } stile_t;
 
 typedef struct {
@@ -18,34 +19,22 @@ typedef struct {
 	int16_t x, y;
 } tile_t;
 
-static inline tm_t
-tm_load(img_t *img, uint32_t w, uint32_t h)
-{
-	tm_t tm;
+typedef struct {
+	unsigned tm_ref;
+	uint32_t n;
+	double speed;
+} sprite_t;
 
-	tm.img = img;
-	tm.w = w;
-	tm.h = h;
-	tm.nx = tm.img->w / w;
-	tm.ny = tm.img->h / h;
+void tm_init(void);
+unsigned tm_load(unsigned img_ref, uint32_t w, uint32_t h);
+const tm_t *tm_get(unsigned tm_ref);
 
-	return tm;
-}
-
-static inline void
-tm_render(tm_t *tm, uint32_t x, uint32_t y,
+void tm_render(unsigned ref,
+		uint32_t x, uint32_t y,
 		uint32_t nx, uint32_t ny,
-		uint32_t w, uint32_t h)
-{
-	if (!w)
-		w = tm->w;
-	if (!h)
-		h = tm->h;
+		uint32_t w, uint32_t h);
 
-	img_render(tm->img, x, y,
-			nx * tm->w, ny * tm->h,
-			tm->w, tm->h,
-			w, h);
-}
-
+void sprite_render(sprite_t *sprite,
+		uint32_t x, uint32_t y,
+		uint32_t sx, uint32_t sy);
 #endif

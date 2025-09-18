@@ -7,7 +7,7 @@
 img_t lamb_img;
 sprite_t lamb;
 
-extern uint32_t hw, hh;
+extern double hw, hh;
 
 void turn_down(unsigned short code,
 		unsigned short type, int value)
@@ -44,8 +44,8 @@ int main() {
 	input_reg(37, turn_up);
 	input_reg(38, turn_right);
 
-	lamb_img = img_load("./resources/lamb.png");
-	lamb.tm = tm_load(&lamb_img, 32, 32);
+	unsigned lamb_img = img_load("./resources/lamb.png");
+	lamb.tm_ref = tm_load(lamb_img, 32, 32);
 	lamb.n = 3;
 	lamb.speed = 7.0;
 

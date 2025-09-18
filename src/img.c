@@ -5,7 +5,7 @@
 #include <string.h>
 
 typedef struct {
-	img_t *img;
+	const img_t *img;
 	uint32_t cx, cy, sw, sh, dw, dh,
 		 doffx, doffy;
 } img_ctx_t;
@@ -29,7 +29,7 @@ img_init(void)
 		 qm_img = qmap_reg(sizeof(img_t));
 
 	img_be_hd = qmap_open(QM_STR, qm_img_be, 0xF, 0);
-	img_hd = qmap_open(QM_STR, qm_img, 0xF, 0);
+	img_hd = qmap_open(QM_HNDL, qm_img, 0xF, QM_AINDEX);
 }
 
 void
@@ -42,7 +42,7 @@ img_deinit(void)
 		img_free((img_t *) value);
 }
 
-img_t img_load(char *filename) {
+unsigned img_load(char *filename) {
 	char *ext = strrchr(filename, '.');
 	img_be_t *be;
 	img_t ret;
@@ -55,8 +55,13 @@ img_t img_load(char *filename) {
 	ret = be->load(filename);
 	ret.be = be;
 
-	qmap_put(img_hd, NULL, &ret);
-	return ret;
+	return qmap_put(img_hd, NULL, &ret);
+}
+
+const img_t *
+img_get(unsigned ref)
+{
+	return qmap_get(img_hd, &ref);
 }
 
 static inline uint8_t
@@ -107,15 +112,14 @@ img_lambda(uint8_t *color,
 }
 
 void
-img_render(img_t *img,
+img_render(unsigned img_ref,
                  int32_t x, int32_t y,
                  uint32_t cx, uint32_t cy,
                  uint32_t sw, uint32_t sh,
                  uint32_t dw, uint32_t dh)
 {
-
+	const img_t *img = img_get(img_ref);
 	uint32_t full_dw = dw, full_dh = dh;
-
 	uint32_t doffx = 0, doffy = 0;
 
 	if (x < 0) {

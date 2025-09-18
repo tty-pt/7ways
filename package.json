@@ -11,7 +11,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.14.0",
   "devDependencies": {
-    "@tty-pt/geo": "^0.0.2",
+    "@tty-pt/geo": "^0.0.3",
     "@tty-pt/qdb": "^0.4.1",
     "@tty-pt/qmap": "^0.3.0",
     "@tty-pt/qsys": "^0.0.11"
