@@ -55,7 +55,10 @@ unsigned img_load(char *filename) {
 	ret = be->load(filename);
 	ret.be = be;
 
-	return qmap_put(img_hd, NULL, &ret);
+	unsigned ref = qmap_put(img_hd, NULL, &ret);
+
+	WARN("img_load %u: %s\n", ref, filename);
+	return ref;
 }
 
 const img_t *

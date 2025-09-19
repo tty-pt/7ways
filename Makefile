@@ -15,7 +15,7 @@ LDLIBS := -lm -lpng ${TTYLIBS:%=-l%} ${LIB-${BE}}
 obj-y := game time be ${BE}
 obj-y += img png
 obj-y += input input-${INPUT-${BE}}
-obj-y += tile view
+obj-y += tile char view
 
 obj-y += shader
 

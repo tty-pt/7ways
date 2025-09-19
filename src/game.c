@@ -3,6 +3,7 @@
 #include "../include/view.h"
 #include "../include/time.h"
 #include "../include/tile.h"
+#include "../include/char.h"
 
 img_t pngi_load(const char *filename);
 uint8_t dim = 3;
@@ -13,8 +14,9 @@ game_init(void)
 	img_init();
 	img_be_load("png", pngi_load);
 	be_init();
-	tile_init();
 	view_init();
+	tile_init();
+	char_init();
 	input_init(0);
 }
 

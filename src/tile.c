@@ -1,7 +1,9 @@
 #include "../include/tile.h"
 #include "../include/cam.h"
+#include "../include/view.h"
 
 #include <qmap.h>
+#include <qsys.h>
 
 typedef struct {
 	unsigned tm_ref,
@@ -9,23 +11,8 @@ typedef struct {
 		 flags;
 } stile_t;
 
-/*
-typedef struct {
-	unsigned img;
-	uint32_t w, h, nx, ny;
-} tm_t;
-
-typedef struct {
-	tm_t tm;
-	uint32_t n;
-	double speed;
-} sprite_t;
-*/
-
-extern double hw, hh;
 extern cam_t cam;
 
-static double inc;
 static unsigned tm_hd, stile_hd;
 
 unsigned
@@ -41,7 +28,9 @@ tm_load(unsigned img_ref, uint32_t w, uint32_t h)
 	tm.nx = img->w / w;
 	tm.ny = img->h / h;
 
-	return qmap_put(tm_hd, NULL, &tm);
+	unsigned ref = qmap_put(tm_hd, NULL, &tm);
+	WARN("tm_load %u: %u %u %u\n", ref, img_ref,
+			w, h);
 }
 
 void
@@ -77,8 +66,6 @@ tile_init(void)
 	tm_hd = qmap_open(QM_HNDL, qm_tm, 0xF, QM_AINDEX);
 	stile_hd = qmap_open(QM_HNDL, qm_stile,
 			0xFF, QM_AINDEX);
-
-	inc = 16.0 * cam.zoom;
 }
 
 unsigned
@@ -98,11 +85,10 @@ tile_render(unsigned ref, int16_t *p)
 {
 	const stile_t *stile
 		= qmap_get(stile_hd, &ref);
-	double inc = 16.0 * cam.zoom;
 
 	tm_render(stile->tm_ref,
-			hw + (p[0] - cam.x) * inc,
-			hh + (p[1] - cam.y) * inc,
+			view_hw + (p[0] - cam.x) * view_mul,
+			view_hh + (p[1] - cam.y) * view_mul,
 			stile->tm_x,
 			stile->tm_y,
 			16.0 * cam.zoom,

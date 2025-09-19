@@ -15,12 +15,7 @@ enum anim {
 	AN_IDLE,
 };
 
-typedef struct {
-	unsigned tm_ref;
-	double x, y, nx, ny;
-	uint8_t anim, dir;
-} char_t;
-
+void char_init(void);
 unsigned char_load(unsigned tm_ref, double x, double y);
 enum dir char_dir(unsigned ref);
 void char_face(unsigned ref, enum dir dir);
@@ -28,5 +23,7 @@ void char_animate(unsigned ref, enum anim anim);
 enum anim char_animation(unsigned ref);
 void char_render(unsigned ref);
 void char_pos(double *x, double *y, unsigned ref);
+void char_ipos(int16_t *p, unsigned ref);
+int char_update(unsigned ref, double dt);
 
 #endif

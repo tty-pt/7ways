@@ -1,11 +1,6 @@
-#include "../include/tile.h"
-#include "../include/input.h"
-#include "../include/view.h"
 #include "../include/game.h"
 #include "../include/shader.h"
-#include "../include/char.h"
 
-img_t lamb_img;
 unsigned cont = 1;
 unsigned lamb;
 
@@ -44,9 +39,8 @@ int main() {
 	input_reg(KEY_Q, key_quit);
 	input_reg(KEY_ESC, key_quit);
 
-	unsigned lamb_img = img_load("./resources/lamb.png");
-	unsigned lamb_tm = tm_load(lamb_img, 32, 32);
-	lamb = char_load(lamb_tm, 0, 0);
+	view_load("./map.txt");
+	lamb = 0;
 
 	game_start();
 
