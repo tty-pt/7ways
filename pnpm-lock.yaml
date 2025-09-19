@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@tty-pt/geo':
-        specifier: ^0.0.4
-        version: 0.0.4(@tty-pt/mk@0.1.18)(@tty-pt/qdb@0.4.1(@tty-pt/mk@0.1.18)(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18))
+        specifier: ^0.0.5
+        version: 0.0.5(@tty-pt/mk@0.1.18)(@tty-pt/qdb@0.4.1(@tty-pt/mk@0.1.18)(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18))
       '@tty-pt/qdb':
         specifier: ^0.4.1
         version: 0.4.1(@tty-pt/mk@0.1.18)(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18))
@@ -23,8 +23,8 @@ importers:
 
 packages:
 
-  '@tty-pt/geo@0.0.4':
-    resolution: {integrity: sha512-/+MtXiDdK/lSGXW5PyH6InrudpsqxmxRFpVhlArzsBEyfbONUjlJ8ADpnki/u1XbRUevT5+xdMURDfFDpF2TAA==}
+  '@tty-pt/geo@0.0.5':
+    resolution: {integrity: sha512-6HAV2yAEZcUB3vJI+z+j2U9XLbq0Hq4xTQd5KQyimgCJrJoI1cM4reMmim5P6GO9D6cQvL/3L4AymNl5bT8/fw==}
     peerDependencies:
       '@tty-pt/mk': ^0.1.18
       '@tty-pt/qdb': ^0.4.1
@@ -54,7 +54,7 @@ packages:
 
 snapshots:
 
-  '@tty-pt/geo@0.0.4(@tty-pt/mk@0.1.18)(@tty-pt/qdb@0.4.1(@tty-pt/mk@0.1.18)(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18))':
+  '@tty-pt/geo@0.0.5(@tty-pt/mk@0.1.18)(@tty-pt/qdb@0.4.1(@tty-pt/mk@0.1.18)(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18))':
     dependencies:
       '@tty-pt/mk': 0.1.18
       '@tty-pt/qdb': 0.4.1(@tty-pt/mk@0.1.18)(@tty-pt/qmap@0.3.1(@tty-pt/mk@0.1.18)(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18)))(@tty-pt/qsys@0.0.11(@tty-pt/mk@0.1.18))

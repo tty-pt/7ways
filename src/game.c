@@ -13,7 +13,7 @@ game_init(void)
 	img_init();
 	img_be_load("png", pngi_load);
 	be_init();
-	tm_init();
+	tile_init();
 	view_init();
 	input_init(0);
 }

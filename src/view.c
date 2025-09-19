@@ -16,7 +16,7 @@
 double char_speed = 7.0;
 double hw, hh;
 extern uint8_t dim;
-unsigned stile_hd, char_hd, map_hd, smap_hd;
+unsigned char_hd, map_hd, smap_hd;
 cam_t cam;
 img_t floors_img;
 unsigned floors_tm;
@@ -123,18 +123,8 @@ tiles_render(void)
 
 	unsigned cur = view_iter(map_hd, 16);
 
-	while (geo_next(p, &ref, cur)) {
-		const stile_t *stile
-			= qmap_get(stile_hd, &ref);
-
-		tm_render(stile->tm_ref,
-				hw + (p[0] - cam.x) * inc,
-				hh + (p[1] - cam.y) * inc,
-				stile->tm_x,
-				stile->tm_y,
-				16.0 * cam.zoom,
-				16.0 * cam.zoom);
-	}
+	while (geo_next(p, &ref, cur))
+		tile_render(ref, p);
 }
 
 static inline void
@@ -160,17 +150,6 @@ mymap_put(int16_t x, int16_t y, int16_t z, unsigned ref)
 {
 	int16_t p[] = { x, y, z };
 	geo_put(map_hd, p, ref, dim);
-}
-
-static inline unsigned
-stile_add(unsigned tm_ref, uint16_t x, uint16_t y) {
-	stile_t stile;
-
-	stile.tm_ref = tm_ref;
-	stile.tm_x = x;
-	stile.tm_y = y;
-
-	return qmap_put(stile_hd, NULL, &stile);
 }
 
 unsigned
@@ -262,7 +241,7 @@ view_load(char *filename) {
 
 		tm_y = strtold(word, NULL);
 
-		stile_add(tm_ref, tm_x, tm_y);
+		tile_add(tm_ref, tm_x, tm_y);
 	}
 
 	uint16_t w, h, d,
@@ -327,7 +306,6 @@ view_load(char *filename) {
 void
 view_init(void)
 {
-	unsigned qm_stile = qmap_reg(sizeof(stile_t));
 	unsigned qm_char = qmap_reg(sizeof(char_t));
 
 	cam.x = 0;
@@ -338,9 +316,6 @@ view_init(void)
 	hh = 0.5 * ((double) be_height) - 8.0 * cam.zoom;
 	ww = be_width / 16.0 / cam.zoom;
 	wh = be_height / 16.0 / cam.zoom;
-
-	stile_hd = qmap_open(QM_HNDL, qm_stile,
-			0xFF, QM_AINDEX);
 
 	char_hd = qmap_open(QM_HNDL, qm_char,
 			0xFF, QM_AINDEX);

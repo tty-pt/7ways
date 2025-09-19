@@ -1,6 +1,8 @@
 #ifndef CHAR_H
 #define CHAR_H
 
+#include <stdint.h>
+
 enum dir {
 	DIR_DOWN,
 	DIR_UP,
