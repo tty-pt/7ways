@@ -4,6 +4,7 @@
 #include "../include/time.h"
 #include "../include/tile.h"
 #include "../include/char.h"
+#include "../include/font.h"
 
 img_t pngi_load(const char *filename);
 uint8_t dim = 3;
@@ -17,6 +18,7 @@ game_init(void)
 	view_init();
 	tile_init();
 	char_init();
+	font_init();
 	input_init(0);
 }
 

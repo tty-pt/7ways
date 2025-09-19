@@ -18,6 +18,8 @@ typedef struct img_be {
 	img_load_t *load;
 } img_be_t;
 
+static const uint32_t default_tint = 0xFFFFFFFF;
+
 void img_be_load(char *ext, img_load_t *load);
 
 void img_init(void);
@@ -30,6 +32,8 @@ void img_render(unsigned ref,
 		uint32_t cx, uint32_t cy,
 		uint32_t sw, uint32_t sh,
 		uint32_t dw, uint32_t dh);
+
+void img_tint(uint32_t tint);
 
 static inline void
 img_free(img_t *img)

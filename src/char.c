@@ -3,6 +3,7 @@
 #include "../include/time.h"
 #include "../include/cam.h"
 #include "../include/view.h"
+#include "../include/dialog.h"
 
 #include <math.h>
 
@@ -12,6 +13,7 @@ typedef struct {
 	unsigned tm_ref;
 	double x, y, nx, ny;
 	uint8_t anim, dir;
+	unsigned dialog;
 } char_t;
 
 extern cam_t cam;
@@ -42,7 +44,7 @@ void char_render(unsigned ref)
 	tm_render(ch->tm_ref, scr_x, scr_y, xn,
 			ch->anim * 4 + ch->dir,
 			cam.zoom * tm->w,
-			cam.zoom * tm->h);
+			cam.zoom * tm->h, 1, 1);
 }
 
 void
@@ -101,12 +103,18 @@ char_update(unsigned ref, double dt)
 {
 	char_t *ch = (char_t *) qmap_get(char_hd, &ref);
 	char_t cho;
-	double char_speed = 4.0, tr;
+	double char_speed = 4.0, tr, nx, ny;
 
 	if (ch->anim == AN_IDLE)
 		return 1;
 
 	tr = dt * char_speed;
+
+	if (view_collides(ch->x, ch->y, ch->dir) != QM_MISS)
+	{
+		ch->anim = AN_IDLE;
+		return 0;
+	}
 
 	switch (ch->dir) {
 		case DIR_UP:
@@ -148,9 +156,34 @@ char_load(unsigned tm_ref, double x, double y) {
 	ch.y = y;
 	ch.anim = AN_IDLE;
 	ch.dir = DIR_DOWN;
+	ch.dialog = QM_MISS;
 
 	ret = qmap_put(char_hd, NULL, &ch);
 	return ret;
+}
+
+unsigned
+char_dialog(unsigned ref, char *text)
+{
+	char_t *ch = (char_t *)
+		qmap_get(char_hd, &ref);
+
+	unsigned dialog = dialog_add(text);
+	ch->dialog = dialog;
+	return dialog;
+}
+
+void char_talk(unsigned ref, enum dir dir) {
+	const char_t *ch = qmap_get(char_hd, &ref);
+	static enum dir reverse_dir[] = {
+		DIR_UP,
+		DIR_DOWN,
+		DIR_RIGHT,
+		DIR_LEFT,
+	};
+
+	dialog_start(ch->dialog);
+	char_face(ref, reverse_dir[dir]);
 }
 
 void

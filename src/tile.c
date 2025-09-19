@@ -31,12 +31,14 @@ tm_load(unsigned img_ref, uint32_t w, uint32_t h)
 	unsigned ref = qmap_put(tm_hd, NULL, &tm);
 	WARN("tm_load %u: %u %u %u\n", ref, img_ref,
 			w, h);
+	return ref;
 }
 
 void
 tm_render(unsigned ref, uint32_t x, uint32_t y,
 		uint32_t nx, uint32_t ny,
-		uint32_t w, uint32_t h)
+		uint32_t w, uint32_t h,
+		uint32_t rx, uint32_t ry)
 {
 	const tm_t *tm = qmap_get(tm_hd, &ref);
 
@@ -45,10 +47,15 @@ tm_render(unsigned ref, uint32_t x, uint32_t y,
 	if (!h)
 		h = tm->h;
 
-	img_render(tm->img, x, y,
-			nx * tm->w, ny * tm->h,
-			tm->w, tm->h,
-			w, h);
+	for (uint32_t iy = 0; iy < ry * h; iy += h)
+		for (uint32_t ix = 0; ix < rx * w; ix += w)
+			img_render(tm->img,
+					x + ix,
+					y + iy,
+					nx * tm->w,
+					ny * tm->h,
+					tm->w, tm->h,
+					w, h);
 }
 
 const tm_t *
@@ -92,5 +99,5 @@ tile_render(unsigned ref, int16_t *p)
 			stile->tm_x,
 			stile->tm_y,
 			16.0 * cam.zoom,
-			16.0 * cam.zoom);
+			16.0 * cam.zoom, 1, 1);
 }

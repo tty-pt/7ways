@@ -2,6 +2,7 @@
 #include "../include/tile.h"
 #include "../include/cam.h"
 #include "../include/char.h"
+#include "../include/dialog.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -11,6 +12,7 @@
 #include <geo.h>
 #include <point.h>
 
+static unsigned me = 0;
 extern uint8_t dim;
 unsigned map_hd, smap_hd;
 cam_t cam;
@@ -220,6 +222,28 @@ vchar_update(unsigned ref, double dt)
 	geo_put(smap_hd, p, ref, dim);
 }
 
+unsigned
+view_collides(double x, double y, enum dir dir)
+{
+	switch (dir) {
+		case DIR_UP:
+			y -= 1;
+			break;
+		case DIR_DOWN:
+			y += 1;
+			break;
+		case DIR_LEFT:
+			x -= 1;
+			break;
+		case DIR_RIGHT:
+			x += 1;
+	}
+
+	int16_t p[] = { x, y, 0 };
+
+	return geo_get(smap_hd, p, dim);
+}
+
 void
 view_update(double dt)
 {
@@ -228,4 +252,24 @@ view_update(double dt)
 
 	while (qmap_next(&key, &value, cur))
 		vchar_update(* (unsigned *) value, dt);
+}
+
+int
+vdialog_action(void)
+{
+	double x, y;
+	unsigned npc;
+	enum dir dir = char_dir(me);
+
+	if (dialog_action())
+		return 1;
+
+	char_pos(&x, &y, me);
+	npc = view_collides(x, y, dir);
+
+	if (npc == QM_MISS)
+		return 0;
+
+	char_talk(npc, dir);
+	return 1;
 }

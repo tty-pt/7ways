@@ -20,7 +20,8 @@ input_call(unsigned short code,
 	keys[code] = value;
 	/* WARN("key: %hu %hu %d\n", code, value, type); */
 
-	if (!inp->cb)
+
+	if (input_default(code, value, type) || !inp->cb)
 		return;
 
 	inp->cb(code, value, type);

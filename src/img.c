@@ -8,9 +8,11 @@ typedef struct {
 	const img_t *img;
 	uint32_t cx, cy, sw, sh, dw, dh,
 		 doffx, doffy;
+	uint32_t tint;
 } img_ctx_t;
 
 static unsigned img_be_hd, img_hd;
+static uint32_t tint;
 
 void img_be_load(char *ext,
 		img_load_t *load)
@@ -30,6 +32,7 @@ img_init(void)
 
 	img_be_hd = qmap_open(QM_STR, qm_img_be, 0xF, 0);
 	img_hd = qmap_open(QM_HNDL, qm_img, 0xF, QM_AINDEX);
+	tint = default_tint;
 }
 
 void
@@ -65,6 +68,11 @@ const img_t *
 img_get(unsigned ref)
 {
 	return qmap_get(img_hd, &ref);
+}
+
+static inline uint8_t mul255(uint8_t a, uint8_t b)
+{
+    return (uint8_t)((a * (int)b + 127) / 255);
 }
 
 static inline uint8_t
@@ -109,9 +117,23 @@ img_lambda(uint8_t *color,
 		(sy * c->img->w + sx) * 4
 	];
 
-	color[0] = blend_u8(pixel[2], color[0], pixel[3]);
-	color[1] = blend_u8(pixel[1], color[1], pixel[3]);
-	color[2] = blend_u8(pixel[0], color[2], pixel[3]);
+	/* color[0] = blend_u8(pixel[2], color[0], pixel[3]); */
+	/* color[1] = blend_u8(pixel[1], color[1], pixel[3]); */
+	/* color[2] = blend_u8(pixel[0], color[2], pixel[3]); */
+
+	uint8_t ta = (uint8_t)((c->tint >> 24) & 0xFF);
+	uint8_t tr = (uint8_t)((c->tint >> 16) & 0xFF);
+	uint8_t tg = (uint8_t)((c->tint >>  8) & 0xFF);
+	uint8_t tb = (uint8_t)((c->tint >>  0) & 0xFF);
+
+	uint8_t a  = mul255(pixel[3], ta);
+	uint8_t sr = mul255(pixel[0], tr);
+	uint8_t sg = mul255(pixel[1], tg);
+	uint8_t sb = mul255(pixel[2], tb);
+
+	color[0] = blend_u8(sb, color[0], a);
+	color[1] = blend_u8(sg, color[1], a);
+	color[2] = blend_u8(sr, color[2], a);
 }
 
 void
@@ -153,7 +175,14 @@ img_render(unsigned img_ref,
 		.sw = sw, .sh = sh,
 		.dw = full_dw, .dh = full_dh,
 		.doffx = doffx, .doffy = doffy,
+		.tint = tint,
 	};
 
 	be_render(img_lambda, x, y, dw, dh, &ctx);
+}
+
+void
+img_tint(uint32_t atint)
+{
+	tint = atint;
 }

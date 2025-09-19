@@ -16,6 +16,7 @@ obj-y := game time be ${BE}
 obj-y += img png
 obj-y += input input-${INPUT-${BE}}
 obj-y += tile char view
+obj-y += font dialog
 
 obj-y += shader
 

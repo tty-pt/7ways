@@ -3,7 +3,7 @@
 
 #include <linux/input-event-codes.h>
 
-typedef void input_cb_t(unsigned short code,
+typedef int input_cb_t(unsigned short code,
 		unsigned short type,
 		int value);
 
@@ -15,6 +15,10 @@ void input_reg(unsigned short key,
 		input_cb_t *cb);
 
 void input_call(unsigned short code,
+		unsigned short value,
+		int type);
+
+extern int input_default(unsigned short code,
 		unsigned short value,
 		int type);
 
