@@ -27,5 +27,6 @@ void char_ipos(int16_t *p, unsigned ref);
 int char_update(unsigned ref, double dt);
 unsigned char_dialog(unsigned ref, char *text);
 void char_talk(unsigned ref, enum dir dir);
+void char_sync(void);
 
 #endif

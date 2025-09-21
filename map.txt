@@ -21,15 +21,5 @@
 0 12 6
 0 13 6
 
-7 7 1
-
-abbbbbb
-bbcbbbb
-bcbdbbb
-bbebbdb
-edcbebb
-bebbbdb
-bbbbcbb
-
 1 0 0
 2 2 1

@@ -7,7 +7,7 @@
 
 #include <math.h>
 
-#include <qmap.h>
+#include <qdb.h>
 
 typedef struct {
 	unsigned tm_ref;
@@ -187,10 +187,21 @@ void char_talk(unsigned ref, enum dir dir) {
 }
 
 void
+char_sync(void)
+{
+	/* qdb_sync(char_hd); */
+}
+
+void
 char_init(void)
 {
 	unsigned qm_char = qmap_reg(sizeof(char_t));
 
+#if 0
+	char_hd = qdb_open("char", QM_HNDL, qm_char,
+			0xFF, QM_AINDEX);
+#else
 	char_hd = qmap_open(QM_HNDL, qm_char,
 			0xFF, QM_AINDEX);
+#endif
 }

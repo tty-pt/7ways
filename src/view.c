@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 #include <qsys.h>
-#include <qmap.h>
+#include <qdb.h>
 #include <geo.h>
 #include <point.h>
 
@@ -130,50 +130,6 @@ view_load(char *filename) {
 		tile_add(tm_ref, tm_x, tm_y);
 	}
 
-	uint16_t w, h, d,
-		 mhw, mhh;
-
-	ret = fgets(line, sizeof(line), fp);
-	word = line;
-
-	CBUG(!ret || *line == '\n', "file input end: H\n");
-
-	w = strtold(word, &word);
-	mhw = w / 2;
-
-	h = strtold(word, &word);
-	mhh = h / 2;
-
-	d = strtold(word, NULL);
-
-	ret = fgets(line, sizeof(line), fp);
-	CBUG(!ret, "file input end: L\n");
-
-	for (uint16_t id = 0; id < d; id ++) {
-		fprintf(stderr, "layer %u\n", id);
-		for (uint16_t ih = 0; ih < h; ih ++)
-		{
-			char *s = line;
-			ret = fgets(line, sizeof(line), fp);
-			CBUG(!ret, "file input end: M\n");
-
-			fprintf(stderr, "line %s", line);
-
-			for (uint16_t iw = 0; iw < w; iw ++, s++)
-			{
-				unsigned stile_ref = (unsigned) (*s - 'b');
-				mymap_put(iw - mhw, ih - mhh,
-						id, stile_ref);
-				n++;
-			}
-		}
-	}
-
-	WARN("load %u tiles\n", n);
-
-	if (!fgets(line, sizeof(line), fp))
-		return;
-
 	while (fgets(line, sizeof(line), fp)) {
 		unsigned ref;
 		uint16_t x, y;
@@ -205,6 +161,7 @@ view_init(void)
 
 	map_hd = geo_open("map", 0x1FFF);
 	smap_hd = geo_open("smap", 0x1FFF);
+	qmap_drop(smap_hd);
 }
 
 static inline void
@@ -220,6 +177,18 @@ vchar_update(unsigned ref, double dt)
 	geo_del(smap_hd, p, dim);
 	char_ipos(p, ref);
 	geo_put(smap_hd, p, ref, dim);
+}
+
+void
+view_paint(unsigned ref, unsigned tile, uint16_t layer)
+{
+	int16_t p[] = { 0, 0, 0 };
+	char_ipos(p, ref);
+	p[2] = layer;
+
+	geo_del(map_hd, p, dim);
+	char_ipos(p, ref);
+	geo_put(map_hd, p, tile, dim);
 }
 
 unsigned
@@ -252,6 +221,12 @@ view_update(double dt)
 
 	while (qmap_next(&key, &value, cur))
 		vchar_update(* (unsigned *) value, dt);
+}
+
+void
+view_sync(void)
+{
+	qdb_sync(map_hd);
 }
 
 int

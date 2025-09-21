@@ -3,29 +3,52 @@
 #include "../include/img.h"
 #include "../include/tile.h"
 #include "../include/dialog.h"
+#include "../include/time.h"
 
 #include <qsys.h>
+#include <qdb.h>
 
-unsigned cont = 1;
+unsigned start_cont = 1, cont = 1;
 unsigned lamb;
-int tile = -1;
+unsigned tile, layer = 0;
+unsigned dlg_tile, dlg_layer, dlg_quit, dlg_save, dlg_info;
 
 extern double hw, hh;
+
+void quit_nosave(void) {
+	cont = 0;
+}
+
+void quit_save(void) {
+	view_sync();
+	char_sync();
+	cont = 0;
+}
 
 int key_quit(unsigned short code,
 		unsigned short type, int value)
 {
-	cont = 0;
+	dialog_start(dlg_quit);
 	return 0;
 }
 
 int key_cont(unsigned short code,
 		unsigned short type, int value)
 {
-	if (type)
-		return 0;
+	if (type) {
+		if (start_cont) {
+			start_cont = 0;
+			return 1;
+		}
 
-	return vdialog_action();
+		return 0;
+	}
+
+	if (vdialog_action())
+		return 1;
+
+	view_paint(lamb, tile, 0);
+	return 0;
 }
 
 static inline int
@@ -49,16 +72,38 @@ int key_down(unsigned short code,
 	return key_dialog_sel(type, 1);
 }
 
-unsigned dlg_tile;
-
-int key_tile(unsigned short code,
-		unsigned short type, int value)
+int dlg_key(unsigned short code,
+		unsigned short type, unsigned dlg)
 {
 	if (type || dialog_showing())
 		return 0;
 
-	dialog_start(dlg_tile);
+	dialog_start(dlg);
 	return 1;
+}
+
+int key_tile(unsigned short code,
+		unsigned short type, int value)
+{
+	return dlg_key(code, type, dlg_tile);
+}
+
+int key_layer(unsigned short code,
+		unsigned short type, int value)
+{
+	return dlg_key(code, type, dlg_layer);
+}
+
+int key_info(unsigned short code,
+		unsigned short type, int value)
+{
+	char **args = dialog_args();
+	static char tile_s[BUFSIZ], layer_s[BUFSIZ];
+	sprintf(tile_s, "%u", tile);
+	sprintf(layer_s, "%u", layer);
+	args[0] = tile_s;
+	args[1] = layer_s;
+	return dlg_key(code, type, dlg_info);
 }
 
 void tile_sel(void) {
@@ -66,17 +111,10 @@ void tile_sel(void) {
 	tile = strtoull(args[0], NULL, 10);
 }
 
-/*
-int key_info(unsigned short code,
-		unsigned short type, int value)
-{
-	if (type || dialog_showing())
-		return 0;
-
-	dialog_start(dlg_info);
-	return 1;
+void layer_sel(void) {
+	char **args = dialog_args();
+	tile = strtoull(args[0], NULL, 10);
 }
-*/
 
 void ensure_move(enum dir dir) {
 	if (dialog_showing())
@@ -115,24 +153,30 @@ int main() {
 	double lamb_speed = 2;
 	unsigned font;
 
+	qdb_config.file = "./map.db";
 	game_init();
 	dialog_init();
 
-	input_reg(KEY_Q, key_quit);
-
-	input_reg(KEY_SPACE, key_cont);
 	input_reg(KEY_ENTER, key_cont);
+	input_reg(KEY_SPACE, key_cont);
 	input_reg(KEY_TAB, key_cont);
+
+	input_reg(KEY_Q, key_quit);
 
 	input_reg(KEY_J, key_down);
 	input_reg(KEY_DOWN, key_down);
-
 	input_reg(KEY_K, key_up);
 	input_reg(KEY_UP, key_up);
 
 	input_reg(KEY_X, key_tile);
+	input_reg(KEY_Z, key_layer);
+	input_reg(KEY_I, key_info);
 
 	view_load("./map.txt");
+
+	unsigned entry_ref = img_load("./resources/seven.png");
+	unsigned press_ref = img_load("./resources/press.png");
+	const img_t *entry_img = img_get(entry_ref);
 
 	unsigned font_img = img_load("./resources/font.png");
 	dialog.font_tm = tm_load(font_img, 9, 21); 
@@ -155,16 +199,66 @@ int main() {
 	unsigned dlg_tile_sel
 		= dialog_input(dlg_tile, 7, 1, IF_NUMERIC,
 				"Tile '%1' selected");
-
 	dialog_then(dlg_tile, tile_sel);
 
+	dlg_layer = dialog_add("Select a layer number:");
+	unsigned dlg_layer_set
+		= dialog_input(dlg_layer, 7, 1, IF_NUMERIC,
+				"Layer '%1' selected");
+	dialog_then(dlg_layer, layer_sel);
+
+	dlg_quit = dialog_add("Really quit?");
+	dialog_option(dlg_quit, "No", NULL);
+	unsigned dlg_save_ask
+		= dialog_option(dlg_quit, "Yes",
+				"Save?");
+	unsigned dlg_nosave
+		= dialog_option(dlg_save_ask, "No",
+				"See you later.");
+	unsigned dlg_save
+		= dialog_option(dlg_save_ask, "Yes",
+				"Saving. Bye-bye.");
+
+	dialog_then(dlg_nosave, quit_nosave);
+	dialog_then(dlg_save, quit_save);
+
+	dlg_info = dialog_add("Tile: %1; Layer: %2");
+
 	game_start();
+
+	while (start_cont) {
+		img_render(entry_ref,
+				0, 0,
+				0, 0,
+				entry_img->w,
+				entry_img->h,
+				be_width,
+				be_height);
+
+
+		uint8_t alpha = (time_tick * 200.0);
+
+		img_tint(0x00FFFFFF
+				| (((uint64_t) alpha) << 24));
+
+		img_render(press_ref,
+				be_width / 2 - 128,
+				be_height - 128,
+				0, 0,
+				entry_img->w,
+				entry_img->h,
+				256,
+				118);
+		img_tint(default_tint);
+
+		game_update();
+		/* my_update(); */
+	}
 
 	while (cont) {
 		shader_render();
 		view_render();
 		dialog_render();
-
 		game_update();
 		my_update();
 

@@ -218,6 +218,7 @@ dialog_add(char *text)
 	d.options = ids_init();
 	d.option_n = 0;
 	d.input = QM_MISS;
+	d.then = NULL;
 	return qmap_put(dialog_hd, NULL, &d);
 }
 
@@ -273,7 +274,7 @@ dialog_option(unsigned ref, char *op_text, char *text)
 	dialog_t *d = (dialog_t *)
 		qmap_get(dialog_hd, &ref);
 
-	unsigned new_ref = dialog_add(text);
+	unsigned new_ref = text ? dialog_add(text) : QM_MISS;
 	unsigned new_o_ref = option_add(op_text, new_ref);
 
 	ids_push(&d->options, new_o_ref);
@@ -321,10 +322,19 @@ _dialog_start(unsigned ref)
 		return;
 
 	ids_push(&dialog_seq, ref);
+	memset(&cdialog, 0, sizeof(cdialog));
 	cdialog = *dialog;
 	cdialog.text = dialog_snprintf(dialog->text);
 	cdialog.next = NULL;
 	cdialog.option = 0;
+
+	if (cdialog.input == QM_MISS)
+		return;
+
+	input_t *i = (input_t *)
+		qmap_get(dialog_hd, &dialog->input);
+
+	*i->text = '\0';
 }
 
 void
@@ -547,6 +557,9 @@ dialog_action(void) {
 	}
 
 	if (cdialog.next || !cdialog.option_n) {
+		if (!cdialog.next && cdialog.then)
+			cdialog.then();
+
 		cdialog.text = cdialog.next;
 		return 1;
 	}
