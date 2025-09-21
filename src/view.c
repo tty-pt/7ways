@@ -22,6 +22,8 @@ double view_mul,
        view_w, view_h,
        view_hw, view_hh;
 
+unsigned view_layers[4];
+
 void view_tl(int16_t tl[dim], uint8_t ow) {
 	uint16_t n_ow = ow / 16;
 
@@ -35,12 +37,12 @@ void view_len(uint16_t l[dim], uint8_t ow) {
 
 	l[0] = view_w + 1 + 2 * n_ow;
 	l[1] = view_h + 1 + 2 * n_ow;
-	l[2] = 1;
+	l[2] = 4;
 }
 
 unsigned view_iter(unsigned pdb_hd, uint8_t ow) {
-	static int16_t quad_s[3];
-	static uint16_t quad_l[3];
+	static int16_t quad_s[4];
+	static uint16_t quad_l[4];
 
 	view_tl(quad_s, ow);
 	view_len(quad_l, ow);
@@ -56,7 +58,7 @@ view_render(void) {
 
 	cur = view_iter(map_hd, 16);
 	while (geo_next(p, &ref, cur))
-		tile_render(ref, p);
+		tile_render(view_layers[0], ref, p);
 
 	cur = view_iter(smap_hd, 32);
 	while (geo_next(p, &ref, cur))
@@ -66,14 +68,14 @@ view_render(void) {
 static inline void
 mymap_put(int16_t x, int16_t y, int16_t z, unsigned ref)
 {
-	int16_t p[] = { x, y, z };
+	int16_t p[] = { x, y, z, 0 };
 	geo_put(map_hd, p, ref, dim);
 }
 
 unsigned
 vchar_load(unsigned tm_ref, int16_t x, int16_t y) {
 	unsigned ref = char_load(tm_ref, x, y);
-	int16_t s[] = { x, y, 0 };
+	int16_t s[] = { x, y, 0, 0 };
 
 	geo_put(smap_hd, s, ref, dim);
 	WARN("vchar_load %u: %d %d\n", ref, x, y);
@@ -149,7 +151,6 @@ view_init(void)
 {
 	geo_init();
 
-	dim = 3;
 	cam.x = 0;
 	cam.y = 0;
 	cam.zoom = 8;
@@ -159,15 +160,15 @@ view_init(void)
 	view_w = be_width / view_mul;
 	view_h = be_height / view_mul;
 
-	map_hd = geo_open("map", 0x1FFF);
-	smap_hd = geo_open("smap", 0x1FFF);
+	map_hd = geo_open("map", 0xFFFFF);
+	smap_hd = geo_open("smap", 0xFFFFF);
 	qmap_drop(smap_hd);
 }
 
 static inline void
 vchar_update(unsigned ref, double dt)
 {
-	int16_t p[] = { 0, 0, 0 };
+	int16_t p[] = { 0, 0, 0, 0 };
 
 	char_ipos(p, ref);
 
@@ -182,12 +183,15 @@ vchar_update(unsigned ref, double dt)
 void
 view_paint(unsigned ref, unsigned tile, uint16_t layer)
 {
-	int16_t p[] = { 0, 0, 0 };
+	int16_t p[] = { 0, 0, 0, 0 };
+	double x, y;
 	char_ipos(p, ref);
 	p[2] = layer;
 
 	geo_del(map_hd, p, dim);
-	char_ipos(p, ref);
+	char_pos(&x, &y, ref);
+	p[0] = x;
+	p[1] = y;
 	geo_put(map_hd, p, tile, dim);
 }
 
@@ -208,7 +212,7 @@ view_collides(double x, double y, enum dir dir)
 			x += 1;
 	}
 
-	int16_t p[] = { x, y, 0 };
+	int16_t p[] = { x, y, 0, 0 };
 
 	return geo_get(smap_hd, p, dim);
 }

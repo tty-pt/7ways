@@ -1,6 +1,10 @@
 #include "../include/tile.h"
 #include "../include/cam.h"
 #include "../include/view.h"
+#include "../include/font.h"
+
+#include <stdio.h>
+#include <string.h>
 
 #include <qmap.h>
 #include <qsys.h>
@@ -88,16 +92,28 @@ tile_add(unsigned tm_ref, uint16_t x, uint16_t y)
 }
 
 void
-tile_render(unsigned ref, int16_t *p)
+tile_render(unsigned tm_ref, unsigned idx, int16_t *p)
 {
-	const stile_t *stile
-		= qmap_get(stile_hd, &ref);
+	char idx_buf[BUFSIZ];
+	unsigned x = view_hw + (p[0] - cam.x) * view_mul;
+	unsigned y = view_hh + (p[1] - cam.y) * view_mul;
+	const tm_t *tm = tm_get(tm_ref);
+	const tm_t *tm_font = tm_get(font_ref);
+	unsigned tm_x = idx % tm->nx;
+	unsigned tm_y = idx / tm->nx;
+	/* if (idx == 77) */
+	/* 	WARN("tile %u %u\n", tm_x, tm_y); */
 
-	tm_render(stile->tm_ref,
-			view_hw + (p[0] - cam.x) * view_mul,
-			view_hh + (p[1] - cam.y) * view_mul,
-			stile->tm_x,
-			stile->tm_y,
-			16.0 * cam.zoom,
-			16.0 * cam.zoom, 1, 1);
+	tm_render(tm_ref,
+			x, y,
+			tm_x, tm_y,
+			16.0 * cam.zoom, 16.0 * cam.zoom,
+			1, 1);
+
+	sprintf(idx_buf, "%u", idx);
+	font_render(font_ref, idx_buf,
+			x, y,
+			x + tm_font->w * strlen(idx_buf),
+			y + tm_font->h,
+			1);
 }

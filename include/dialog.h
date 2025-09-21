@@ -13,7 +13,6 @@ typedef struct {
 } ui_box_t;
 
 typedef struct {
-	unsigned font_tm;
 	uint32_t font_scale;
 	ui_box_t *ui_box;
 } dialog_settings_t;

@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+extern unsigned font_ref;
+
 void font_init(void);
 unsigned font_load(char *fname, uint32_t w, uint32_t h);
 

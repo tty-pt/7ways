@@ -6,6 +6,7 @@
 
 extern double view_mul, view_hw, view_hh;
 extern cam_t cam;
+extern unsigned view_layers[4];
 
 void view_render(void);
 void view_init(void);

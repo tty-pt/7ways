@@ -20,7 +20,7 @@ obj-y += font dialog
 
 obj-y += shader
 
-CFLAGS := -g
+CFLAGS := -g -Wall -Wpedantic
 
 .c.o:
 	${CC} -o $@ ${CFLAGS} -c $<

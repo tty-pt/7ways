@@ -7,7 +7,7 @@
 #include "../include/font.h"
 
 img_t pngi_load(const char *filename);
-uint8_t dim = 3;
+const uint8_t dim = 3;
 
 void
 game_init(void)

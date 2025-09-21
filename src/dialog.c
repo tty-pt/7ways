@@ -227,6 +227,7 @@ input_add(uint32_t cw, uint32_t ch,
 		unsigned next, unsigned flags)
 {
 	input_t d;
+	memset(&d, 0, sizeof(d));
 	d.cw = cw;
 	d.ch = ch;
 	d.next = next;
@@ -344,6 +345,7 @@ dialog_start(unsigned ref)
 		return;
 
 	ids_drop(&dialog_seq);
+	dialog_arg_n = 0;
 	_dialog_start(ref);
 }
 
@@ -363,7 +365,7 @@ static inline void
 box_in(uint32_t *cx, uint32_t *cy,
 		uint32_t tw, uint32_t th)
 {
-	const tm_t *font_tm = tm_get(dialog.font_tm);
+	const tm_t *font_tm = tm_get(font_ref);
 	unsigned max_len = 0, n = 0, ref;
 	uint32_t px, py, bx, by;
 	long dx, dy;
@@ -389,7 +391,7 @@ box_in(uint32_t *cx, uint32_t *cy,
 
 void
 dialog_options_render(void) {
-	const tm_t *font_tm = tm_get(dialog.font_tm);
+	const tm_t *font_tm = tm_get(font_ref);
 	uint32_t h = dialog.font_scale * font_tm->h,
 		 w = dialog.font_scale * font_tm->w;
 
@@ -427,7 +429,7 @@ dialog_options_render(void) {
 			img_tint(0x77000000);
 
 		font_render(
-				dialog.font_tm,
+				font_ref,
 				opt->text,
 				cx,
 				cy + n * h,
@@ -448,7 +450,7 @@ input_render(void)
 	const input_t *input
 		= qmap_get(input_hd, &cdialog.input);
 
-	const tm_t *font_tm = tm_get(dialog.font_tm);
+	const tm_t *font_tm = tm_get(font_ref);
 	uint32_t h = dialog.font_scale * font_tm->h,
 		 w = dialog.font_scale * font_tm->w;
 	uint32_t cx, cy, cw = input->cw, ch = input->ch;
@@ -462,7 +464,7 @@ input_render(void)
 	img_tint(0xDD000000);
 
 	font_render(
-			dialog.font_tm,
+			font_ref,
 			(char *) input->text,
 			cx,
 			cy,
@@ -515,7 +517,7 @@ dialog_render(void)
 	img_tint(0xAA000000);
 
 	cdialog.next = font_render(
-			dialog.font_tm,
+			font_ref,
 			cdialog.text,
 			x, y,
 			mx, my,
@@ -524,7 +526,7 @@ dialog_render(void)
 	if (cdialog.next) {
 		if ((unsigned) round(time_tick * 2) & 1)
 			font_render_char(
-					dialog.font_tm, 158,
+					font_ref, 158,
 					mx - tm->w,
 					my - tm->h,
 					dialog.font_scale);
