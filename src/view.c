@@ -27,8 +27,8 @@ unsigned view_layers[4];
 void view_tl(int16_t tl[dim], uint8_t ow) {
 	uint16_t n_ow = ow / 16;
 
-	tl[0] = cam.x - view_w / 2 - n_ow;
-	tl[1] = cam.y - view_h / 2 - n_ow;
+	tl[0] = cam.x - view_w / 2 - n_ow - 1;
+	tl[1] = cam.y - view_h / 2 - n_ow - 1;
 	tl[2] = 0;
 }
 

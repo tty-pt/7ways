@@ -1,0 +1,26 @@
+Este é um motor de jogo desenvolvido em C usando bibliotecas que eu desenvolvi, que por sua vez dependem apenas de bibliotecas do sistema, do libdb e do xxhash. O jogo usa tambem o libpng para fazer o carregamento de imagens, e tem suporte de dois tipos de backend. Um para se renderizar no linux framebuffer, e um para utilizar o OpenGl, no sistema de janelas (libGL e libx11 também são dependências). As bibliotecas que eu desenvolvi são uma de hashtables, ou dicionários, uma que lhe adiciona suporte para escrita em ficheiro, usando o libdb, e a terceira para indexação espacial, utilizando as anteriores. Estas bibliotecas têm um bug que não consegui resolver antes da entrega.
+
+O conceito seria o de um mini RPG no estilo retro, baseado em mecânicas de diàlogo e exploração, portanto um foco em narrativa. Também tinha planeado adicionar ciclos de passagem do tempo, como amanhecer e anoitecer, e também o movimento automático dos mobs.
+
+O jogador seria um cordeiro curioso, que ao explorar o mundo envolvente, descobria vários grupos de animais, entre cada grupo um com uma "deficiência".
+
+- Um galo mudo, que mais tarde se descobriria ser o primeiro a acordar os outros no galinheiro, por se esforçar para fazer um bom trabalho, enquando os outros são perguiçosos. De certa forma, comunicando de forma que os ultrapassa.
+
+- Uma coruja cega, que aprendeu a prestar atenção, e ganhou um grande entendimento, que lhe permite "ver" mais do que as outras.
+
+- Um sapo surdo, que não coaxa em zaragatas, e é muito paciente.
+
+- Um burro de bom coração, que mostra muita inteligência exatamente por agir bem.
+
+- Um macaco sem rabo, que encontrou formas de ser ágil para além das expectativas e habilidades dos outros.
+
+- Uma raposa coxa, mas que é mais prudente que as outras, e as consegue salvar de perigos.
+
+- Um cavalo velho, mas misericordioso e paciente. Que se destingue dos seus amigos e familiares exatamente por isto.
+
+Como se pode ver existem ainda bugs críticos no que toca à indexação espacial.
+
+Repos:
+git@github.com:tty-pt/nd.git
+git@github.com:tty-pt/qmap.git
+git@github.com:tty-pt/geo.git
