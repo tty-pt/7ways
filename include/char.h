@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define CHAR_SYNC 0
+
 enum dir {
 	DIR_DOWN,
 	DIR_UP,

@@ -9,9 +9,7 @@ void be_render(draw_lambda_t *lambda,
 		int32_t x, int32_t y,
 		uint32_t w, uint32_t h, void *ctx)
 {
-	uint32_t screen_size = screen.size;
 	uint32_t sw = be_width;
-	uint32_t sh = be_height;
 	uint8_t channels = screen.channels;
 	size_t offset = y * sw + x;
 	uint8_t *start = &screen.canvas[0]
@@ -53,7 +51,6 @@ void be_render(draw_lambda_t *lambda,
 		uint32_t i = kc / sw;
 		uint32_t j = kc % sw;
 		uint32_t ix = j - x;
-		uint32_t iy = sh - 1 - i;
 		lambda(pos, ix, i - y, ctx);
 	}
 }

@@ -6,14 +6,15 @@
 #include "../include/char.h"
 #include "../include/font.h"
 
-img_t pngi_load(const char *filename);
+void png_init(void);
 const uint8_t dim = 3;
 
 void
 game_init(void)
 {
 	img_init();
-	img_be_load("png", pngi_load);
+	png_init();
+	img_load_all();
 	be_init();
 	view_init();
 	tile_init();

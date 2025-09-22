@@ -23,14 +23,14 @@ unsigned
 tm_load(unsigned img_ref, uint32_t w, uint32_t h)
 {
 	tm_t tm;
-	const img_t *img;
+	uint32_t img_w, img_h;
 
 	tm.img = img_ref;
-	img = img_get(img_ref);
+	img_size(&img_w, &img_h, img_ref);
 	tm.w = w;
 	tm.h = h;
-	tm.nx = img->w / w;
-	tm.ny = img->h / h;
+	tm.nx = img_w / w;
+	tm.ny = img_h / h;
 
 	unsigned ref = qmap_put(tm_hd, NULL, &tm);
 	WARN("tm_load %u: %u %u %u\n", ref, img_ref,
@@ -53,7 +53,7 @@ tm_render(unsigned ref, uint32_t x, uint32_t y,
 
 	for (uint32_t iy = 0; iy < ry * h; iy += h)
 		for (uint32_t ix = 0; ix < rx * w; ix += w)
-			img_render(tm->img,
+			img_render_ex(tm->img,
 					x + ix,
 					y + iy,
 					nx * tm->w,
@@ -101,8 +101,6 @@ tile_render(unsigned tm_ref, unsigned idx, int16_t *p)
 	const tm_t *tm_font = tm_get(font_ref);
 	unsigned tm_x = idx % tm->nx;
 	unsigned tm_y = idx / tm->nx;
-	/* if (idx == 77) */
-	/* 	WARN("tile %u %u\n", tm_x, tm_y); */
 
 	tm_render(tm_ref,
 			x, y,

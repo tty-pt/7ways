@@ -1,6 +1,6 @@
 .SUFFIXES: .o .c
 
-TTYLIBS := geo qdb qmap qsys
+TTYLIBS := geo qmap qdb qsys
 NPMLIBS := ${TTYLIBS:%=@tty-pt/%}
 NPMFLAGS := ${NPMLIBS:%=-L%/lib}
 

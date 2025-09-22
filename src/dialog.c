@@ -140,7 +140,7 @@ box_render(ui_box_t *ui_box,
 		uint32_t mx, uint32_t my)
 {
 	const tm_t *tm = tm_get(ui_box->ui_tm);
-	uint32_t start_idx = 0, idx;
+	uint32_t idx;
 	uint32_t h = ui_box->scale * tm->h,
 		 w = ui_box->scale * tm->w,
 		 iy = y;
@@ -365,8 +365,6 @@ static inline void
 box_in(uint32_t *cx, uint32_t *cy,
 		uint32_t tw, uint32_t th)
 {
-	const tm_t *font_tm = tm_get(font_ref);
-	unsigned max_len = 0, n = 0, ref;
 	uint32_t px, py, bx, by;
 	long dx, dy;
 
@@ -396,8 +394,7 @@ dialog_options_render(void) {
 		 w = dialog.font_scale * font_tm->w;
 
 	unsigned max_len = 0, n = 0, ref;
-	uint32_t tw = 0, th = 0, cx, cy;
-	long dx, dy;
+	uint32_t cx, cy;
 
 	idsi_t *idsi = ids_iter(&cdialog.options);
 
@@ -487,9 +484,6 @@ dialog_render(void)
 
 	if (!cdialog.text)
 		return;
-
-	uint32_t h = dialog.ui_box->scale * tm->h,
-		 w = dialog.ui_box->scale * tm->w;
 
 	box_d(&dx, &dy, dialog.ui_box, mx - x, my - y, 0);
 

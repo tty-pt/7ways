@@ -1,8 +1,15 @@
 #include "../include/img.h"
 
-#include <qmap.h>
+#include <qdb.h>
 #include <qsys.h>
 #include <string.h>
+
+typedef struct {
+	char *filename;
+	struct img_be *be;
+	uint8_t *data;
+	uint32_t w, h;
+} img_t;
 
 typedef struct {
 	const img_t *img;
@@ -11,14 +18,16 @@ typedef struct {
 	uint32_t tint;
 } img_ctx_t;
 
-static unsigned img_be_hd, img_hd;
+static unsigned img_be_hd, img_hd, img_name_hd;
 static uint32_t tint;
 
 void img_be_load(char *ext,
-		img_load_t *load)
+		img_load_t *load,
+		img_save_t *save)
 {
 	img_be_t img_be = {
 		.load = load,
+		.save = save,
 	};
 
 	qmap_put(img_be_hd, ext, &img_be);
@@ -32,36 +41,100 @@ img_init(void)
 
 	img_be_hd = qmap_open(QM_STR, qm_img_be, 0xF, 0);
 	img_hd = qmap_open(QM_HNDL, qm_img, 0xF, QM_AINDEX);
+	img_name_hd = qdb_open("img", QM_STR, QM_HNDL, 0xF, 0);
+
 	tint = default_tint;
+}
+
+void
+img_load_all(void)
+{
+	unsigned cur;
+	const void *key, *value;
+
+	cur = qmap_iter(img_name_hd, NULL, 0);
+	while (qmap_next(&key, &value, cur))
+		img_load((const char *) key);
+}
+
+static inline void
+img_free(img_t *img)
+{
+	free(img->filename);
+	free(img->data);
 }
 
 void
 img_deinit(void)
 {
-	unsigned cur = qmap_iter(img_hd, NULL, 0);
+	unsigned cur;
 	const void *key, *value;
+
+	qdb_sync(img_name_hd);
+	cur = qmap_iter(img_hd, NULL, 0);
 
 	while (qmap_next(&key, &value, cur))
 		img_free((img_t *) value);
 }
 
-unsigned img_load(char *filename) {
+unsigned
+img_new(uint8_t **data,
+		const char *filename,
+		uint32_t w, uint32_t h,
+		unsigned flags)
+{
+	img_t img;
+	unsigned ref;
+	const unsigned *ref_r;
+	char *ext = strrchr(filename, '.');
+
+	img.w = w;
+	img.h = h;
+	img.data = malloc(img.w * img.h * 4);
+	img.filename = strdup(filename);
+	img.be = (img_be_t *) qmap_get(img_be_hd, ext + 1);
+
+	if (data)
+		*data = img.data;
+
+	ref_r = qmap_get(img_name_hd, filename);
+	ref = qmap_put(img_hd, ref_r, &img);
+	qmap_put(img_name_hd, img.filename, &ref);
+
+	return ref;
+}
+
+unsigned img_load(const char *filename) {
 	char *ext = strrchr(filename, '.');
 	img_be_t *be;
-	img_t ret;
+	unsigned ref;
+	const unsigned *ref_r;
+	img_t *img;
+
+	ref_r = qmap_get(img_name_hd, filename);
+	if (ref_r && qmap_get(img_hd, ref_r))
+		return *ref_r;
 
 	CBUG(!ext, "IMG: invalid filename %s\n", filename);
 
 	be = (img_be_t *) qmap_get(img_be_hd, ext + 1);
 	CBUG(!be, "IMG: %s backend not present.\n", ext);
 
-	ret = be->load(filename);
-	ret.be = be;
-
-	unsigned ref = qmap_put(img_hd, NULL, &ret);
+	ref = be->load(filename);
+	img = (img_t *) qmap_get(img_hd, &ref);
+	img->be = be;
 
 	WARN("img_load %u: %s\n", ref, filename);
 	return ref;
+}
+
+void
+img_save(unsigned ref)
+{
+	const img_t *img = qmap_get(img_hd, &ref);
+
+	img->be->save(img->filename, img->data,
+			img->w, img->h);
 }
 
 const img_t *
@@ -95,6 +168,16 @@ map_coord_off(uint32_t d, uint32_t doff, uint32_t D_full,
 			/ (D_full - 1));
 }
 
+static inline uint8_t *
+_img_pick(const img_t *img, uint32_t x, uint32_t y)
+{
+	uint8_t *pixel = &img->data[
+		(y * img->w + x) * 4
+	];
+
+	return pixel;
+}
+
 static void
 img_lambda(uint8_t *color,
 		uint32_t x, uint32_t y,
@@ -113,13 +196,7 @@ img_lambda(uint8_t *color,
 	if (sy >= c->img->h)
 		sy = c->img->h - 1;
 
-	uint8_t *pixel = &c->img->data[
-		(sy * c->img->w + sx) * 4
-	];
-
-	/* color[0] = blend_u8(pixel[2], color[0], pixel[3]); */
-	/* color[1] = blend_u8(pixel[1], color[1], pixel[3]); */
-	/* color[2] = blend_u8(pixel[0], color[2], pixel[3]); */
+	uint8_t *pixel = _img_pick(c->img, sx, sy);
 
 	uint8_t ta = (uint8_t)((c->tint >> 24) & 0xFF);
 	uint8_t tr = (uint8_t)((c->tint >> 16) & 0xFF);
@@ -137,7 +214,7 @@ img_lambda(uint8_t *color,
 }
 
 void
-img_render(unsigned img_ref,
+img_render_ex(unsigned img_ref,
                  int32_t x, int32_t y,
                  uint32_t cx, uint32_t cy,
                  uint32_t sw, uint32_t sh,
@@ -182,7 +259,61 @@ img_render(unsigned img_ref,
 }
 
 void
+img_render(unsigned ref,
+                 int32_t x, int32_t y,
+                 uint32_t dw, uint32_t dh)
+{
+	const img_t *img = qmap_get(img_hd, &ref);
+
+	img_render_ex(ref, x, y, 0, 0,
+			img->w, img->h, dw, dh);
+}
+
+void
 img_tint(uint32_t atint)
 {
 	tint = atint;
+}
+
+void
+img_size(uint32_t *w, uint32_t *h, unsigned ref)
+{
+	const img_t *img = qmap_get(img_hd, &ref);
+
+	*w = img->w;
+	*h = img->h;
+}
+
+uint32_t
+img_pick(unsigned ref, uint32_t x, uint32_t y)
+{
+	const img_t *img = qmap_get(img_hd, &ref);
+	uint8_t *color = _img_pick(img, x, y);
+
+	return color[0]
+		| (color[1] << 8)
+		| (color[2] << 16)
+		| (color[3] << 24);
+}
+
+void
+img_paint(unsigned ref, uint32_t x, uint32_t y, uint32_t c)
+{
+	const img_t *img = qmap_get(img_hd, &ref);
+	uint8_t *color = _img_pick(img, x, y);
+
+	color[0] = c & 0xFF;
+	color[1] = (c >> 8) & 0xFF;
+	color[2] = (c >> 16) & 0xFF;
+	color[3] = (c >> 24) & 0xFF;
+}
+
+void
+img_del(unsigned ref)
+{
+	const img_t *img = qmap_get(img_hd, &ref);
+	qmap_del(img_name_hd, img->filename);
+	free(img->filename);
+	free(img->data);
+	qmap_del(img_hd, &ref);
 }

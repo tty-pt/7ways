@@ -11,6 +11,7 @@
 
 typedef struct {
 	unsigned tm_ref;
+	double pos[4];
 	double x, y, nx, ny;
 	uint8_t anim, dir;
 	unsigned dialog;
@@ -103,7 +104,7 @@ char_update(unsigned ref, double dt)
 {
 	char_t *ch = (char_t *) qmap_get(char_hd, &ref);
 	char_t cho;
-	double char_speed = 4.0, tr, nx, ny;
+	double char_speed = 4.0, tr;
 
 	if (ch->anim == AN_IDLE)
 		return 1;
@@ -159,6 +160,7 @@ char_load(unsigned tm_ref, double x, double y) {
 	ch.dialog = QM_MISS;
 
 	ret = qmap_put(char_hd, NULL, &ch);
+	vchar_put(ret, x, y);
 	return ret;
 }
 
@@ -189,7 +191,9 @@ void char_talk(unsigned ref, enum dir dir) {
 void
 char_sync(void)
 {
-	/* qdb_sync(char_hd); */
+#if CHAR_SYNC
+	qdb_sync(char_hd);
+#endif
 }
 
 void
@@ -197,9 +201,20 @@ char_init(void)
 {
 	unsigned qm_char = qmap_reg(sizeof(char_t));
 
-#if 0
+#if CHAR_SYNC
+	unsigned cur;
+	const void *key, *value;
+
 	char_hd = qdb_open("char", QM_HNDL, qm_char,
 			0xFF, QM_AINDEX);
+
+	cur = qmap_iter(char_hd, NULL, 0);
+	while (qmap_next(&key, &value, cur)) {
+		unsigned ref = * (unsigned *) key;
+		char_t *ch = (char_t *) value;
+
+		char_load(ch->tm_ref, ch->x, ch->y);
+	}
 #else
 	char_hd = qmap_open(QM_HNDL, qm_char,
 			0xFF, QM_AINDEX);

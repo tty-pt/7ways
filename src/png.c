@@ -4,15 +4,17 @@
 #include <qsys.h>
 #include <png.h>
 
-img_t
+unsigned
 pngi_load(const char *filename)
 {
 	FILE *fp = fopen(filename, "rb");
 	unsigned char header[8];
 	png_structp png;
-	img_t img;
+	uint8_t *data;
+	uint32_t w, h;
 	png_bytep *rows;
 	int color_type, bit_depth;
+	unsigned ref;
 
 	CBUG(!fp, "fopen");
 
@@ -34,8 +36,10 @@ pngi_load(const char *filename)
 	 png_set_sig_bytes(png, 8);
 	 png_read_info(png, info);
 
-	 img.w = png_get_image_width(png, info);
-	 img.h = png_get_image_height(png, info);
+	 w = png_get_image_width(png, info);
+	 h = png_get_image_height(png, info);
+	 ref = img_new(&data, filename, w, h, IMG_LOAD);
+
 	 color_type = png_get_color_type(png, info);
 	 bit_depth = png_get_bit_depth(png, info);
 
@@ -57,22 +61,20 @@ pngi_load(const char *filename)
 
 	 png_read_update_info(png, info);
 
-	 img.data = malloc(img.w * img.h * 4);
+	 rows = malloc(sizeof(png_bytep) * h);
 
-	 rows = malloc(sizeof(png_bytep) * img.h);
-
-	 for (int y = 0; y < img.h; y++)
+	 for (int y = 0; y < h; y++)
 		 rows[y] = malloc(png_get_rowbytes(png,
 					 info));
 
 	 png_read_image(png, rows);
 
-	 uint8_t *pos = img.data;
+	 uint8_t *pos = data;
 
-	 for (int y = 0; y < img.h; y++) {
+	 for (int y = 0; y < h; y++) {
 		 png_bytep row = rows[y];
 
-		 for (int x = 0; x < img.w; x++, pos += 4) {
+		 for (int x = 0; x < w; x++, pos += 4) {
 			 png_byte *pixel = &(row[x * 4]);
 			 pos[0] = pixel[0];
 			 pos[1] = pixel[1];
@@ -84,10 +86,63 @@ pngi_load(const char *filename)
 	 fclose(fp);
 	 png_destroy_read_struct(&png, &info, NULL);
 
-	 for (int y = 0; y < img.h; y++)
+	 for (int y = 0; y < h; y++)
 		 free(rows[y]);
 
 	 free(rows);
 
-	 return img;
+	 return ref;
+}
+
+int
+pngi_save(const char *filename,
+           const uint8_t *data,
+           uint32_t w, uint32_t h)
+{
+    FILE *fp = fopen(filename, "wb");
+    png_structp png = NULL;
+    png_infop info = NULL;
+    png_bytep *rows = NULL;
+
+    CBUG(!fp, "fopen");
+
+    png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    CBUG(!png, "png_create_write_struct");
+
+    info = png_create_info_struct(png);
+    CBUG(!info, "png_create_info_struct");
+
+    CBUG(setjmp(png_jmpbuf(png)), "setjmp");
+
+    png_init_io(png, fp);
+
+    png_set_IHDR(png, info,
+                 w, h,
+                 8,                         /* bit depth */
+                 PNG_COLOR_TYPE_RGBA,       /* RGBA */
+                 PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_DEFAULT,
+                 PNG_FILTER_TYPE_DEFAULT);
+
+    png_write_info(png, info);
+
+    rows = malloc(sizeof(png_bytep) * h);
+    CBUG(!rows, "malloc rows");
+
+    for (uint32_t y = 0; y < h; y++)
+        rows[y] = (png_bytep)(data + (size_t)y * w * 4);
+
+    png_write_image(png, rows);
+    png_write_end(png, NULL);
+
+    free(rows);
+    png_destroy_write_struct(&png, &info);
+    fclose(fp);
+    return 0;
+}
+
+void
+png_init(void)
+{
+	img_be_load("png", pngi_load, pngi_save);
 }

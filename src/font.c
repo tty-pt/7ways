@@ -46,8 +46,7 @@ font_render(unsigned tm_ref, char *text,
 		uint32_t scale)
 {
 	const tm_t *tm = tm_get(tm_ref);
-	uint32_t nx, ny, ix = x;
-	char *s = text;
+	uint32_t ix = x;
 
 	for (char *s = text; *s; s++, ix += tm->w * scale) {
 		uint32_t ni, nx, ny;

@@ -5,6 +5,8 @@
 #include "../include/dialog.h"
 #include "../include/time.h"
 
+#include <stdio.h>
+
 #include <qsys.h>
 #include <qdb.h>
 
@@ -103,7 +105,7 @@ void tile_sel(void) {
 
 void layer_sel(void) {
 	char **args = dialog_args();
-	tile = strtoull(args[0], NULL, 10);
+	layer = strtoull(args[0], NULL, 10);
 }
 
 void ensure_move(enum dir dir) {
@@ -140,9 +142,6 @@ int input_default(unsigned short code,
 }
 
 int main() {
-	double lamb_speed = 2;
-	unsigned font;
-
 	qdb_config.file = "./map.db";
 	game_init();
 	dialog_init();
@@ -162,16 +161,13 @@ int main() {
 
 	view_load("./map.txt");
 
-	view_layers[0] = 0;
-
 	unsigned entry_ref = img_load("./resources/seven.png");
 	unsigned press_ref = img_load("./resources/press.png");
-	const img_t *entry_img = img_get(entry_ref);
 
 	unsigned font_img = img_load("./resources/font.png");
 	font_ref = tm_load(font_img, 9, 21); 
 
-	unsigned ui_img = img_load("./resources/Complete_UI_Essential_Pack_Free/01_Flat_Theme/Spritesheets/Spritesheet_UI_Flat.png");
+	unsigned ui_img = img_load("./resources/ui.png");
 	dialog.ui_box->ui_tm
 		= tm_load(ui_img, 32, 32);
 
@@ -198,8 +194,7 @@ int main() {
 		= dialog_option(dlg_edit,
 				"Tile",
 				"Select tile number.");
-	unsigned dlg_tile_sel
-		= dialog_input(dlg_tile, 7, 1, IF_NUMERIC,
+	dialog_input(dlg_tile, 7, 1, IF_NUMERIC,
 				"Tile '%1' selected");
 	dialog_then(dlg_tile, tile_sel);
 
@@ -207,15 +202,12 @@ int main() {
 		= dialog_option(dlg_edit,
 				"Layer",
 				"Select layer number.");
-	unsigned dlg_layer_set
-		= dialog_input(dlg_layer, 7, 1, IF_NUMERIC,
-				"Layer '%1' selected");
+	dialog_input(dlg_layer, 7, 1, IF_NUMERIC,
+			"Layer '%1' selected");
 	dialog_then(dlg_layer, layer_sel);
 
-	unsigned dlg_info
-		= dialog_option(dlg_edit,
-				"Info",
-				"Tile: %1; Layer: %2");
+	dialog_option(dlg_edit, "Info",
+			"Tile: %1; Layer: %2");
 
 	unsigned dlg = char_dialog(1, "Do you want to learn how to edit the map?");
 
@@ -230,9 +222,6 @@ int main() {
 	while (start_cont) {
 		img_render(entry_ref,
 				0, 0,
-				0, 0,
-				entry_img->w,
-				entry_img->h,
 				be_width,
 				be_height);
 
@@ -245,15 +234,12 @@ int main() {
 		img_render(press_ref,
 				be_width / 2 - 128,
 				be_height - 128,
-				0, 0,
-				entry_img->w,
-				entry_img->h,
 				256,
 				118);
+
 		img_tint(default_tint);
 
 		game_update();
-		/* my_update(); */
 	}
 
 	while (cont) {
