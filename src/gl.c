@@ -2,9 +2,8 @@
 
 #include <qsys.h>
 
-#include <X11/Xlib.h>
+#include <GLFW/glfw3.h>
 #include <GL/gl.h>
-#include <GL/glx.h>
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -12,50 +11,39 @@
 #include <string.h>
 #include <limits.h>
 
-Display *g_dpy;
-Window   g_win;
-static GLXContext g_ctx;
+
+GLFWwindow *g_win;
 static GLuint   g_tex;
 
 static void
 glx_create_window(uint32_t w, uint32_t h)
 {
-	int att[] = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
+	if (!glfwInit()) {
+		fprintf(stderr, "glfwInit failed\n");
+		exit(1);
+	}
 
-	g_dpy = XOpenDisplay(NULL);
-	CBUG(!g_dpy, "XOpenDisplay");
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-	XVisualInfo *vi = glXChooseVisual(g_dpy,
-			DefaultScreen(g_dpy), att);
-	CBUG(!vi, "glXChooseVisual");
+	g_win = glfwCreateWindow((int)w, (int)h, "be (OpenGL)", NULL, NULL);
+	if (!g_win) {
+		fprintf(stderr, "glfwCreateWindow failed\n");
+		glfwTerminate();
+		exit(2);
+	}
 
-	Colormap cmap = XCreateColormap(g_dpy,
-			RootWindow(g_dpy, vi->screen),
-			vi->visual, AllocNone);
-
-	XSetWindowAttributes swa = {0};
-	swa.colormap = cmap;
-	swa.event_mask = ExposureMask | StructureNotifyMask;
-
-	g_win = XCreateWindow(g_dpy,
-			RootWindow(g_dpy, vi->screen),
-			0, 0, w, h, 0, vi->depth,
-			InputOutput, vi->visual,
-			CWColormap | CWEventMask, &swa);
-
-	XStoreName(g_dpy, g_win, "be (OpenGL)");
-	XMapWindow(g_dpy, g_win);
-
-	g_ctx = glXCreateContext(g_dpy, vi, 0, True);
-	CBUG(!g_ctx, "glXCreateContext");
-	glXMakeCurrent(g_dpy, g_win, g_ctx);
+	glfwMakeContextCurrent(g_win);
+	glfwSwapInterval(1); // VSync
 
 	glDisable(GL_DEPTH_TEST);
-	glViewport(0, 0, w, h);
+	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, (GLdouble) w, 0, (GLdouble) h, -1, 1);
+	glOrtho(0, (GLdouble)w, 0, (GLdouble)h, -1, 1);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -138,7 +126,8 @@ void be_flush(void) {
 	glVertex2f((float) be_width, (float) be_height);
 	glEnd();
 
-	glXSwapBuffers(g_dpy, g_win);
+	glfwSwapBuffers(g_win);
+	glfwPollEvents();
 
 	screen.min_x = UINT_MAX;
 	screen.min_y = UINT_MAX;
@@ -146,11 +135,9 @@ void be_flush(void) {
 }
 
 void be_deinit(void) {
-	glXMakeCurrent(g_dpy, None, NULL);
 	glDeleteTextures(1, &g_tex);
-	glXDestroyContext(g_dpy, g_ctx);
-	XDestroyWindow(g_dpy, g_win);
-	XCloseDisplay(g_dpy);
+	glfwDestroyWindow(g_win);
+	glfwTerminate();
 
 	free(screen.canvas);
 	memset(&screen, 0, sizeof(screen));

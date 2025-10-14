@@ -41,7 +41,8 @@ img_init(void)
 
 	img_be_hd = qmap_open(QM_STR, qm_img_be, 0xF, 0);
 	img_hd = qmap_open(QM_HNDL, qm_img, 0xF, QM_AINDEX);
-	img_name_hd = qdb_open("img", QM_STR, QM_HNDL, 0xF, 0);
+	/* img_name_hd = qdb_open("img", QM_STR, QM_HNDL, 0xF, 0); */
+	img_name_hd = qmap_open(QM_STR, QM_HNDL, 0xF, 0);
 
 	tint = default_tint;
 }
@@ -70,7 +71,7 @@ img_deinit(void)
 	unsigned cur;
 	const void *key, *value;
 
-	qdb_sync(img_name_hd);
+	/* qdb_sync(img_name_hd); */
 	cur = qmap_iter(img_hd, NULL, 0);
 
 	while (qmap_next(&key, &value, cur))

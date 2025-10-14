@@ -105,13 +105,13 @@ tile_render(unsigned tm_ref, unsigned idx, int16_t *p)
 	tm_render(tm_ref,
 			x, y,
 			tm_x, tm_y,
-			16.0 * cam.zoom, 16.0 * cam.zoom,
+			view_mul, view_mul,
 			1, 1);
 
 	sprintf(idx_buf, "%u", idx);
-	font_render(font_ref, idx_buf,
-			x, y,
-			x + tm_font->w * strlen(idx_buf),
-			y + tm_font->h,
-			1);
+	/* font_render(font_ref, idx_buf, */
+	/* 		x, y, */
+	/* 		x + tm_font->w * strlen(idx_buf), */
+	/* 		y + tm_font->h, */
+	/* 		1); */
 }

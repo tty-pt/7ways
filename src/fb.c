@@ -1,3 +1,9 @@
+/*
+ * This file contains code under a dual licensing scheme:
+ * - Portions © Pedro Tavares, licensed under Apache 2.0 (see NOTICE)
+ * - Remaining portions © 2025 Paulo André Azevedo Quirino, under BSD-2-Clause
+ */
+
 #include "../include/draw.h"
 #include <fcntl.h>
 #include <linux/fb.h>

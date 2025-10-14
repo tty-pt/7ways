@@ -3,6 +3,7 @@
 #include "../include/cam.h"
 #include "../include/char.h"
 #include "../include/dialog.h"
+#include "../include/map.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -25,7 +26,12 @@ double view_mul,
        view_w, view_h,
        view_hw, view_hh;
 
-layer_t view_layers[2];
+unsigned layer_n, above_n, ts_n;
+layer_t *view_layers;
+layer_t *view_above;
+unsigned *view_flags;
+unsigned view_tms[4];
+uint32_t map_width, map_height;
 
 int16_t view_min[3], view_max[3];
 
@@ -45,56 +51,6 @@ void view_len(uint16_t l[dim], uint8_t ow) {
 	l[2] = 4;
 }
 
-// idx: 0..255  ->  RGBA (R:3 bits, G:3 bits, B:2 bits)
-static inline uint32_t view_col(uint8_t idx)
-{
-	// extract intertwined bits:
-	// R0,G0,B0,R1,G1,B1,R2,G2
-
-	unsigned r3 = ((idx >> 0) & 1u)
-		| (((idx >> 3) & 1u) << 1)
-		| (((idx >> 6) & 1u) << 2);
-
-	unsigned g3 = ((idx >> 1) & 1u)
-		| (((idx >> 4) & 1u) << 1)
-		| (((idx >> 7) & 1u) << 2);
-
-	unsigned b2 = ((idx >> 2) & 1u)
-		| (((idx >> 5) & 1u) << 1);
-
-	// scale 3/3/2 bits to 8 bits with rounding
-	uint8_t r = (uint8_t)((r3 * 255u + 3u) / 7u);
-	uint8_t g = (uint8_t)((g3 * 255u + 3u) / 7u);
-	uint8_t b = (uint8_t)((b2 * 255u + 2u) / 3u);
-
-	return 0xFF000000u
-		| ((uint32_t) r << 16)
-		| ((uint32_t) g << 8)
-		| b;
-}
-
-static inline unsigned view_idx(uint32_t col)
-{
-    uint8_t r8 = (col >> 16) & 0xFF;
-    uint8_t g8 = (col >>  8) & 0xFF;
-    uint8_t b8 = (col      ) & 0xFF;
-
-    // quantize
-    unsigned r3 = (unsigned)((r8 * 7u + 127u) / 255u);
-    unsigned g3 = (unsigned)((g8 * 7u + 127u) / 255u);
-    unsigned b2 = (unsigned)((b8 * 3u + 127u) / 255u);
-
-    // intertwine
-    return  ((r3 & 1u) << 0)
-          | ((g3 & 1u) << 1)
-          | ((b2 & 1u) << 2)
-          | (((r3 >> 1) & 1u) << 3)
-          | (((g3 >> 1) & 1u) << 4)
-          | (((b2 >> 1) & 1u) << 5)
-          | (((r3 >> 2) & 1u) << 6)
-          | (((g3 >> 2) & 1u) << 7);
-}
-
 static inline void
 view_bmtl(uint32_t *target, int16_t *tl)
 {
@@ -103,22 +59,30 @@ view_bmtl(uint32_t *target, int16_t *tl)
 }
 
 static inline void
-view_render_bm(int16_t *tl, uint32_t *bmtl, uint16_t *len,
-		unsigned layer_idx)
+view_render_tile(int16_t *tl, uint32_t *bmtl,
+		uint32_t x, uint32_t y, uint32_t z, layer_t *layers)
 {
-	layer_t *layer = &view_layers[layer_idx];
+	int16_t p[] = { x + tl[0], y + tl[1], z };
+	layer_t *layer = &layers[z];
+	uint32_t col = img_pick(layer->bm_ref,
+			x + bmtl[0],
+			y + bmtl[1]);
 
+	unsigned idx = map_idx(col);
+	if (idx)
+		tile_render(layer->tm_ref, idx, p);
+}
+
+static inline void
+view_render_bm(int16_t *tl, uint32_t *bmtl, uint16_t *len,
+		unsigned layer_idx, unsigned layer_n, unsigned layer_off)
+{
 	for (uint32_t y = 0; y < len[1]; y++)
 		for (uint32_t x = 0; x < len[0]; x++)
-		{
-			int16_t p[] = { x + tl[0], y + tl[1], layer_idx };
-			uint32_t col = img_pick(layer->bm_ref,
-					x + bmtl[0],
-					y + bmtl[1]);
-
-			unsigned idx = view_idx(col);
-			tile_render(layer->tm_ref, idx, p);
-		}
+			for (uint32_t z = 0; z < layer_n;
+					z++)
+				view_render_tile(tl, bmtl,
+						x, y, z, view_layers + layer_off);
 }
 
 void
@@ -134,12 +98,13 @@ view_render(void) {
 	view_bmtl(bmtl, tl);
 	view_len(l, 16);
 
-	view_render_bm(tl, bmtl, l, 0);
-	view_render_bm(tl, bmtl, l, 1);
+	view_render_bm(tl, bmtl, l, 0, layer_n, 0);
 
 	cur = geo_iter(smap_hd, tl, l, dim);
 	while (geo_next(p, &ref, cur))
 		char_render(ref);
+
+	view_render_bm(tl, bmtl, l, 0, above_n, layer_n);
 }
 
 void
@@ -194,15 +159,56 @@ view_load(char *filename) {
 	}
 #endif
 
-	uint32_t w, h;
-	view_layers[0].bm_ref = img_load("./map/0.png");
-	view_layers[1].bm_ref = img_load("./map/1.png");
-	img_size(&w, &h, view_layers[0].bm_ref);
-	view_min[0] = -w / 2;
-	view_min[1] = -h / 2;
+	fclose(fp);
+
+	fp = fopen("./map/info.txt", "r");
+	ret = fgets(line, sizeof(line), fp);
+	word = line;
+
+	map_width = strtoull(word, &word, 10);
+	map_height = strtoull(word, &word, 10);
+	layer_n = strtoull(word, &word, 10);
+	above_n = strtoull(word, &word, 10);
+	ts_n = strtoull(word, &word, 10);
+
+	view_min[0] = -map_width / 2;
+	view_min[1] = -map_height / 2;
 	view_min[2] = 0;
 
-	point_debug("view_min", view_min, dim);
+	fclose(fp);
+
+	view_layers = malloc((layer_n + above_n) * sizeof(layer_t));
+
+	for (unsigned i = 0; i < layer_n + above_n; i++) {
+		layer_t *layer = &view_layers[i];
+		snprintf(line, sizeof(line),
+				"./map/map%u.png",
+				i);
+		layer->bm_ref = img_load(line);
+		layer->tm_ref = 0;
+	}
+
+	unsigned col_ref = img_load("./map/col0.png");
+	size_t len = map_width * map_height * sizeof(unsigned);
+
+	view_flags = malloc(len);
+	memset(view_flags, 0, len);
+
+	const tm_t *tm = tm_get(0);
+	unsigned *vf = view_flags;
+
+	for (uint32_t y = 0; y < map_height; y++)
+		for (uint32_t x = 0; x < map_width; x++, vf++)
+			for (uint32_t z = 0; z < layer_n; z++) {
+				layer_t *layer = &view_layers[z];
+				uint32_t color = img_pick(
+						layer->bm_ref, x, y);
+				unsigned idx = map_idx(color);
+				uint32_t tx = idx % tm->nx,
+					 ty = idx / tm->nx;
+				uint32_t col = img_pick(col_ref, tx, ty);
+				*vf |= col;
+			}
 }
 
 void
@@ -212,7 +218,7 @@ view_init(void)
 
 	cam.x = 0;
 	cam.y = 0;
-	cam.zoom = 8;
+	cam.zoom = 4;
 	view_mul = 16.0 * cam.zoom;
 	view_hw = 0.5 * ((double) be_width - view_mul);
 	view_hh = 0.5 * ((double) be_height - view_mul);
@@ -247,7 +253,7 @@ view_paint(unsigned ref, unsigned tile, uint16_t layer)
 	img_paint(view_layers[layer].bm_ref,
 			((int16_t) x) - view_min[0],
 			((int16_t) y) - view_min[1],
-			view_col(tile));
+			map_color(tile));
 }
 
 unsigned
@@ -268,8 +274,17 @@ view_collides(double x, double y, enum dir dir)
 	}
 
 	int16_t p[] = { x, y, 0, 0 };
+	unsigned ret = geo_get(smap_hd, p, dim);
+	
+	if (ret != QM_MISS)
+		return ret;
 
-	return geo_get(smap_hd, p, dim);
+	uint32_t mx = x - view_min[0], my = y - view_min[1];
+
+	if (view_flags[my * map_width + mx] & 0x1)
+		return 0;
+
+	return QM_MISS;
 }
 
 void
@@ -285,6 +300,18 @@ view_update(double dt)
 void
 view_sync(void)
 {
+	unsigned tile = 0;
+	const tm_t *tm = tm_get(view_layers[1].tm_ref);
+	
+	for (uint32_t y = 0; y < tm->ny; y++) {
+		for (uint32_t x = 0; x < tm->nx; x++, tile++) {
+			img_paint(view_layers[1].bm_ref,
+					x, y,
+					map_color(tile));
+		}
+	}
+
+
 	img_save(view_layers[0].bm_ref);
 	img_save(view_layers[1].bm_ref);
 }
@@ -302,7 +329,7 @@ vdialog_action(void)
 	char_pos(&x, &y, me);
 	npc = view_collides(x, y, dir);
 
-	if (npc == QM_MISS)
+	if (npc == QM_MISS || npc == 0)
 		return 0;
 
 	char_talk(npc, dir);

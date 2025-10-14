@@ -1,4 +1,4 @@
-16 ./resources/floors.png
+16 ./resources/tiles.png
 32 ./resources/lamb.png
 32 ./resources/rooster.png
 
