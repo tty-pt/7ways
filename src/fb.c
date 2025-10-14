@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include <qsys.h>
+#include <ttypt/qsys.h>
 
 #define BYTE 8
 

@@ -1,7 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <linux/input-event-codes.h>
+#include <GLFW/glfw3.h>
 
 typedef int input_cb_t(unsigned short code,
 		unsigned short type,

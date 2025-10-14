@@ -1,7 +1,7 @@
 #include "../include/img.h"
 #include <limits.h>
 #include <stdlib.h>
-#include <qsys.h>
+#include <ttypt/qsys.h>
 #include <png.h>
 
 unsigned

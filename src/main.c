@@ -7,8 +7,7 @@
 
 #include <stdio.h>
 
-#include <qsys.h>
-#include <qdb.h>
+#include <ttypt/qsys.h>
 
 unsigned start_cont = 1, cont = 1;
 unsigned lamb;
@@ -121,13 +120,13 @@ void ensure_move(enum dir dir) {
 
 void
 my_update(void) {
-	if (key_value(KEY_J) || key_value(KEY_DOWN))
+	if (key_value(GLFW_KEY_J) || key_value(GLFW_KEY_DOWN))
 		ensure_move(DIR_DOWN);
-	if (key_value(KEY_K) || key_value(KEY_UP))
+	if (key_value(GLFW_KEY_K) || key_value(GLFW_KEY_UP))
 		ensure_move(DIR_UP);
-	if (key_value(KEY_H) || key_value(KEY_LEFT))
+	if (key_value(GLFW_KEY_H) || key_value(GLFW_KEY_LEFT))
 		ensure_move(DIR_LEFT);
-	if (key_value(KEY_L) || key_value(KEY_RIGHT))
+	if (key_value(GLFW_KEY_L) || key_value(GLFW_KEY_RIGHT))
 		ensure_move(DIR_RIGHT);
 }
 
@@ -142,22 +141,21 @@ int input_default(unsigned short code,
 }
 
 int main() {
-	qdb_config.file = "./map.db";
 	game_init();
 	dialog_init();
 
-	input_reg(KEY_ENTER, key_cont);
-	input_reg(KEY_SPACE, key_cont);
-	input_reg(KEY_TAB, key_cont);
+	input_reg(GLFW_KEY_ENTER, key_cont);
+	input_reg(GLFW_KEY_SPACE, key_cont);
+	input_reg(GLFW_KEY_TAB, key_cont);
 
-	input_reg(KEY_Q, key_quit);
+	input_reg(GLFW_KEY_Q, key_quit);
 
-	input_reg(KEY_J, key_down);
-	input_reg(KEY_DOWN, key_down);
-	input_reg(KEY_K, key_up);
-	input_reg(KEY_UP, key_up);
+	input_reg(GLFW_KEY_J, key_down);
+	input_reg(GLFW_KEY_DOWN, key_down);
+	input_reg(GLFW_KEY_K, key_up);
+	input_reg(GLFW_KEY_UP, key_up);
 
-	input_reg(KEY_E, key_edit);
+	input_reg(GLFW_KEY_E, key_edit);
 
 	view_load("./map.txt");
 
