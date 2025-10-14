@@ -4,8 +4,8 @@
 
 #include <string.h>
 
-#include <qmap.h>
-#include <qsys.h>
+#include <ttypt/qmap.h>
+#include <ttypt/qsys.h>
 
 typedef struct {
 	unsigned tm_ref;

@@ -1,7 +1,7 @@
 #include "../include/img.h"
 
-#include <qdb.h>
-#include <qsys.h>
+#include <ttypt/qmap.h>
+#include <ttypt/qsys.h>
 #include <string.h>
 
 typedef struct {

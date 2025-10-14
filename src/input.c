@@ -2,14 +2,14 @@
 
 #include <stddef.h>
 
-#include <qsys.h>
+#include <ttypt/qsys.h>
 
 typedef struct {
 	input_cb_t *cb;
 } input_t;
 
-static input_t cbs[256];
-unsigned keys[256];
+static input_t cbs[GLFW_KEY_LAST + 1];
+unsigned keys[GLFW_KEY_LAST + 1];
 
 void
 input_call(unsigned short code,

@@ -8,10 +8,10 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <qsys.h>
-#include <qmap.h>
-#include <geo.h>
-#include <point.h>
+#include <ttypt/qsys.h>
+#include <ttypt/qmap.h>
+#include <ttypt/geo.h>
+#include <ttypt/point.h>
 
 typedef struct {
 	unsigned bm_ref, tm_ref;

@@ -28,6 +28,35 @@ static idev_t devs[128];
 static int ndev = 0;
 static struct termios orig_termios;
 
+#include <GLFW/glfw3.h>
+#include <linux/input-event-codes.h>
+
+static int keymap[KEY_MAX + 1];
+
+__attribute__((constructor))
+	static void init_keymap(void) {
+		for (int i = 0; i <= KEY_MAX; i++)
+			keymap[i] = -1;
+
+		/* mapear letras A-Z */
+		for (int i = 0; i < 26; i++)
+			keymap[KEY_A + i] = GLFW_KEY_A + i;
+
+		/* números 0–9 */
+		for (int i = 0; i < 10; i++)
+			keymap[KEY_0 + i] = GLFW_KEY_0 + i;
+
+		/* setas, espaço, tab, enter, escape */
+		keymap[KEY_UP]    = GLFW_KEY_UP;
+		keymap[KEY_DOWN]  = GLFW_KEY_DOWN;
+		keymap[KEY_LEFT]  = GLFW_KEY_LEFT;
+		keymap[KEY_RIGHT] = GLFW_KEY_RIGHT;
+		keymap[KEY_SPACE] = GLFW_KEY_SPACE;
+		keymap[KEY_TAB]   = GLFW_KEY_TAB;
+		keymap[KEY_ENTER] = GLFW_KEY_ENTER;
+		keymap[KEY_ESC]   = GLFW_KEY_ESCAPE;
+	}
+
 static int input_index(dev_t r) {
 	for (int i = 0; i < ndev; i++)
 		if (devs[i].rdev == r)
@@ -208,11 +237,19 @@ static int input_drain(int fd) {
 
 	int n = r / (int) sizeof(struct input_event);
 
-	for (int i = 0; i < n; i++)
-		input_call(
-			ev[i].code,
-			ev[i].value,
-			ev[i].type);
+	for (int i = 0; i < n; i++) {
+		struct input_event *e = &ev[i];
+
+		if (e->type == EV_KEY) {
+			int gkey = (e->code <= KEY_MAX) ? keymap[e->code] : -1;
+			if (gkey >= 0)
+				input_call((unsigned short)gkey,
+						e->value ? 1 : 0,
+						e->type);
+		} else if (e->type == EV_REL || e->type == EV_ABS) {
+			input_call(0, 0, e->type); /* sinalizar movimento ou resize */
+		}
+	}
 
 	return 1;
 }
