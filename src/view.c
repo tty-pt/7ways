@@ -151,10 +151,7 @@ view_load(char *filename) {
 
 		word = line;
 
-		ref = strtold(word, &word);
-		x = strtold(word, &word);
-		y = strtold(word, NULL);
-
+		sscanf(line, "%u %hu %hu", &ref, &x, &y);
 		char_load(ref, x, y);
 	}
 #endif

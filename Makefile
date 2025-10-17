@@ -11,15 +11,18 @@ prefix-Darwin += ${prefix-Darwin-${arch}}
 prefix-Linux := /usr
 prefix-OpenBSD := /usr/local /usr/X11R6
 prefix-Msys := /mingw64
+prefix-MingW := /ucrt64
 prefix := ${prefix-${uname}}
 
 cc-Linux := ${CC}
 cc-Darwin := ${CC}
 cc-OpenBSD := ${CC}
 cc-Msys := /usr/bin/x86_64-w64-mingw32-gcc
+cc-MingW := /ucrt64/bin/gcc
 cc := ${cc-${uname}}
 
 exe-Msys := .exe
+exe-MingW := .exe
 exe := ${exe-${uname}}
 
 TTYLIBS := geo xxhash qmap qsys
@@ -31,6 +34,7 @@ BE := gl
 GL-Linux := -lGL
 GL-OpenBSD := -lGL -lGLU -lX11
 LIB-glfw-Msys := -lglfw3 -lopengl32 -lgdi32 -luser32 -lkernel32
+LIB-glfw-MingW := -lglfw3 -lopengl32 -lgdi32 -luser32 -lkernel32
 LIB-glfw-Linux := -lglfw
 LIB-glfw-OpenBSD := -lglfw
 LIB-glfw-Darwin := -lglfw
