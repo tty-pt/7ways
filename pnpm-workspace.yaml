@@ -1,5 +1,0 @@
-onlyBuiltDependencies:
-  - '@tty-pt/geo'
-  - '@tty-pt/qdb'
-  - '@tty-pt/qmap'
-  - '@tty-pt/qsys'

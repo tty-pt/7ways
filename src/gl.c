@@ -71,9 +71,9 @@ gl_create_texture(uint32_t w, uint32_t h, const void *pixels)
 			GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA,
-			(GLsizei) w, (GLsizei) h, 0,
-			GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+             (GLsizei) w, (GLsizei) h, 0,
+             GL_BGRA, GL_UNSIGNED_BYTE, pixels);
 }
 
 void be_init(void) {

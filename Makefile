@@ -11,15 +11,18 @@ prefix-Darwin += ${prefix-Darwin-${arch}}
 prefix-Linux := /usr
 prefix-OpenBSD := /usr/local /usr/X11R6
 prefix-Msys := /mingw64
+prefix-MingW := /ucrt64
 prefix := ${prefix-${uname}}
 
 cc-Linux := ${CC}
 cc-Darwin := ${CC}
 cc-OpenBSD := ${CC}
 cc-Msys := /usr/bin/x86_64-w64-mingw32-gcc
+cc-MingW := /ucrt64/bin/gcc
 cc := ${cc-${uname}}
 
 exe-Msys := .exe
+exe-MingW := .exe
 exe := ${exe-${uname}}
 
 TTYLIBS := geo xxhash qmap qsys
@@ -31,6 +34,7 @@ BE := gl
 GL-Linux := -lGL
 GL-OpenBSD := -lGL -lGLU -lX11
 LIB-glfw-Msys := -lglfw3 -lopengl32 -lgdi32 -luser32 -lkernel32
+LIB-glfw-MingW := -lglfw3 -lopengl32 -lgdi32 -luser32 -lkernel32
 LIB-glfw-Linux := -lglfw
 LIB-glfw-OpenBSD := -lglfw
 LIB-glfw-Darwin := -lglfw
@@ -77,29 +81,30 @@ tmxc: src/tmxc.c src/map.o src/img.o src/png.o
 	${cc} -o $@ src/map.o src/img.o src/png.o ${CFLAGS} ${LDFLAGS} ${LIB-tmx} \
 		${LDLIBS}
 
-resources := $(DESTDIR)${PREFIX}/share/fb-rpg/resources
-map := $(DESTDIR)${PREFIX}/share/fb-rpg/map
+share := $(DESTDIR)${PREFIX}/share/fb-rpg
+map := ${share}/map
 
 install:
 	install -d $(DESTDIR)${PREFIX}/bin
-	install -m 755 rpg${exe} $(DESTDIR)${PREFIX}/bin/fb-rpg
+	install -m 755 rpg${exe} $(DESTDIR)${PREFIX}/bin/fb-rpg${exe}
 	install -d $(DESTDIR)${PREFIX}/share
 	install -d $(DESTDIR)${PREFIX}/share/fb-rpg
-	install -d ${resources}
-	install -m 644  map.txt ${resources}
-	install -m 644  resources/press.png ${resources}
-	install -m 644  resources/seven.png ${resources}
-	install -m 644  resources/tiles.png ${resources}
-	install -m 644  resources/lamb.png ${resources}
-	install -m 644  resources/rooster.png ${resources}
-	install -m 644  resources/ui.png ${resources}
-	install -m 644  resources/font.png ${resources}
-	install -d ${map}
-	install -m 644  map/col0.png ${map}
-	install -m 644  map/map0.png ${map}
-	install -m 644  map/map1.png ${map}
-	install -m 644  map/map2.png ${map}
-	install -m 644  map/map3.png ${map}
-	install -m 644  map/info.txt ${map}
+	install -d ${share}/resources
+	install -m 644 map.txt ${share}
+	install -m 644 resources/icon.ico ${share}/resources
+	install -m 644 resources/press.png ${share}/resources
+	install -m 644 resources/seven.png ${share}/resources
+	install -m 644 resources/tiles.png ${share}/resources
+	install -m 644 resources/lamb.png ${share}/resources
+	install -m 644 resources/rooster.png ${share}/resources
+	install -m 644 resources/ui.png ${share}/resources
+	install -m 644 resources/font.png ${share}/resources
+	install -d ${share}/map
+	install -m 644  map/col0.png ${share}/map
+	install -m 644  map/map0.png ${share}/map
+	install -m 644  map/map1.png ${share}/map
+	install -m 644  map/map2.png ${share}/map
+	install -m 644  map/map3.png ${share}/map
+	install -m 644  map/info.txt ${share}/map
 
 .PHONY: all install

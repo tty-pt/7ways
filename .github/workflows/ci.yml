@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    uses: tty-pt/ci/.github/workflows/all-in-one.yml@msys
+    uses: tty-pt/ci/.github/workflows/all-in-one.yml@main
     with:
       name: fb-rpg
       deps: "libgeo,libglfw3-dev,libpng-dev"
@@ -15,8 +15,8 @@ jobs:
       deps_pacman: "libgeo,glfw,libpng"
       deps_rpm: "libgeo,glfw-devel,libpng-devel"
       deps_brew: "libgeo,glfw,libpng"
-      deps_openbsd: "libgeo,glfw,png"
-      deps_msys: "libgeo,mingw-w64-glfw,mingw-w64-libpng"
+      deps_openbsd: "libqsys,libgeo,glfw,png"
+      deps_pacman_mingw: "mingw-w64-libgeo,mingw-w64-glfw,mingw-w64-libpng"
     secrets:
       HOST: ${{ secrets.OPENBSD_HOST }}
       USER: ${{ secrets.OPENBSD_USER }}
