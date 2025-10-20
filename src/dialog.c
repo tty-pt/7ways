@@ -59,7 +59,6 @@ dialog_settings_t dialog = {
 };
 
 char key_chars[] = {
-	[ 0 ... 255 ] = ' ',
 	[GLFW_KEY_1] = '1',
 	[GLFW_KEY_2] = '2',
 	[GLFW_KEY_3] = '3',

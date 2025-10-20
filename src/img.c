@@ -82,7 +82,7 @@ unsigned
 img_new(uint8_t **data,
 		const char *filename,
 		uint32_t w, uint32_t h,
-		unsigned flags)
+		unsigned flags UNUSED)
 {
 	img_t img;
 	unsigned ref;

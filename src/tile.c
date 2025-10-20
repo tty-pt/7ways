@@ -98,7 +98,6 @@ tile_render(unsigned tm_ref, unsigned idx, int16_t *p)
 	unsigned x = view_hw + (p[0] - cam.x) * view_mul;
 	unsigned y = view_hh + (p[1] - cam.y) * view_mul;
 	const tm_t *tm = tm_get(tm_ref);
-	const tm_t *tm_font = tm_get(font_ref);
 	unsigned tm_x = idx % tm->nx;
 	unsigned tm_y = idx / tm->nx;
 
@@ -109,9 +108,13 @@ tile_render(unsigned tm_ref, unsigned idx, int16_t *p)
 			1, 1);
 
 	sprintf(idx_buf, "%u", idx);
-	/* font_render(font_ref, idx_buf, */
-	/* 		x, y, */
-	/* 		x + tm_font->w * strlen(idx_buf), */
-	/* 		y + tm_font->h, */
-	/* 		1); */
+
+#if 0
+	const tm_t *tm_font = tm_get(font_ref);
+	font_render(font_ref, idx_buf,
+			x, y,
+			x + tm_font->w * strlen(idx_buf),
+			y + tm_font->h,
+			1);
+#endif
 }

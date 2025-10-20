@@ -75,7 +75,8 @@ view_render_tile(int16_t *tl, uint32_t *bmtl,
 
 static inline void
 view_render_bm(int16_t *tl, uint32_t *bmtl, uint16_t *len,
-		unsigned layer_idx, unsigned layer_n, unsigned layer_off)
+		unsigned layer_idx UNUSED,
+		unsigned layer_n, unsigned layer_off)
 {
 	for (uint32_t y = 0; y < len[1]; y++)
 		for (uint32_t x = 0; x < len[0]; x++)
@@ -222,7 +223,7 @@ view_init(void)
 	view_w = be_width / view_mul;
 	view_h = be_height / view_mul;
 
-	smap_hd = geo_open("smap", 0xFFFFF);
+	smap_hd = geo_open(0xFFFFF);
 	qmap_drop(smap_hd);
 }
 

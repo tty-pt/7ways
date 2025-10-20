@@ -34,15 +34,12 @@ static void fbsize_cb(GLFWwindow *w, int width, int height) {
 	input_call(0, 0, 4);
 }
 
-/* ================================================================
- * Public API
- * ================================================================ */
-
 void input_init(int grab)
 {
-	/* Configure grabbing if requested */
+	g_grab = grab;
 	if (g_grab)
-		glfwSetInputMode(g_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetInputMode(g_win, GLFW_CURSOR,
+				GLFW_CURSOR_DISABLED);
 
 	/* Register callbacks */
 	glfwSetKeyCallback(g_win, key_cb);

@@ -27,15 +27,17 @@ void quit_save(void) {
 	cont = 0;
 }
 
-int key_quit(unsigned short code,
-		unsigned short type, int value)
+int key_quit(unsigned short code UNUSED,
+		unsigned short type UNUSED,
+		int value UNUSED)
 {
 	dialog_start(dlg_quit);
 	return 0;
 }
 
-int key_cont(unsigned short code,
-		unsigned short type, int value)
+int key_cont(unsigned short code UNUSED,
+		unsigned short type,
+		int value UNUSED)
 {
 	if (type) {
 		if (start_cont) {
@@ -62,19 +64,19 @@ key_dialog_sel(unsigned short type, int down)
 	return dialog_select(down);
 }
 
-int key_up(unsigned short code,
-		unsigned short type, int value)
+int key_up(unsigned short code UNUSED,
+		unsigned short type, int value UNUSED)
 {
 	return key_dialog_sel(type, 0);
 }
 
-int key_down(unsigned short code,
-		unsigned short type, int value)
+int key_down(unsigned short code UNUSED,
+		unsigned short type, int value UNUSED)
 {
 	return key_dialog_sel(type, 1);
 }
 
-int dlg_key(unsigned short code,
+int dlg_key(unsigned short code UNUSED,
 		unsigned short type, unsigned dlg)
 {
 	if (type || dialog_showing())
@@ -85,7 +87,8 @@ int dlg_key(unsigned short code,
 }
 
 int key_edit(unsigned short code,
-		unsigned short type, int value)
+		unsigned short type,
+		int value UNUSED)
 {
 	char **args = dialog_args();
 	static char tile_s[BUFSIZ], layer_s[BUFSIZ];
@@ -132,7 +135,7 @@ my_update(void) {
 
 int input_default(unsigned short code,
 		unsigned short value,
-		int type)
+		int type UNUSED)
 {
 	if (value)
 		return 0;
@@ -140,7 +143,7 @@ int input_default(unsigned short code,
 		return input_press(code);
 }
 
-int main() {
+int main(void) {
 	game_init();
 	dialog_init();
 

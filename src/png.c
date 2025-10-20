@@ -1,4 +1,5 @@
 #include "../include/img.h"
+#include <sys/time.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <ttypt/qsys.h>
@@ -63,7 +64,7 @@ pngi_load(const char *filename)
 
 	 rows = malloc(sizeof(png_bytep) * h);
 
-	 for (int y = 0; y < h; y++)
+	 for (uint32_t y = 0; y < h; y++)
 		 rows[y] = malloc(png_get_rowbytes(png,
 					 info));
 
@@ -71,10 +72,10 @@ pngi_load(const char *filename)
 
 	 uint8_t *pos = data;
 
-	 for (int y = 0; y < h; y++) {
+	 for (uint32_t y = 0; y < h; y++) {
 		 png_bytep row = rows[y];
 
-		 for (int x = 0; x < w; x++, pos += 4) {
+		 for (uint32_t x = 0; x < w; x++, pos += 4) {
 			 png_byte *pixel = &(row[x * 4]);
 			 pos[0] = pixel[0];
 			 pos[1] = pixel[1];
@@ -86,7 +87,7 @@ pngi_load(const char *filename)
 	 fclose(fp);
 	 png_destroy_read_struct(&png, &info, NULL);
 
-	 for (int y = 0; y < h; y++)
+	 for (uint32_t y = 0; y < h; y++)
 		 free(rows[y]);
 
 	 free(rows);

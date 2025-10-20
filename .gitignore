@@ -1,3 +1,2 @@
 /src/*.o
-/rpg
-/node_modules
+/bin/
