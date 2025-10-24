@@ -202,9 +202,9 @@ dialog_init(void)
 	unsigned qm_opt = qmap_reg(sizeof(option_t));
 	unsigned qm_input = qmap_reg(sizeof(input_t));
 
-	dialog_hd = qmap_open(QM_HNDL, qm_dialog, 0xFF, QM_AINDEX);
-	option_hd = qmap_open(QM_HNDL, qm_opt, 0xFF, QM_AINDEX);
-	input_hd = qmap_open(QM_HNDL, qm_input, 0xFF, QM_AINDEX);
+	dialog_hd = qmap_open(NULL, NULL, QM_HNDL, qm_dialog, 0xFF, QM_AINDEX);
+	option_hd = qmap_open(NULL, NULL, QM_HNDL, qm_opt, 0xFF, QM_AINDEX);
+	input_hd = qmap_open(NULL, NULL, QM_HNDL, qm_input, 0xFF, QM_AINDEX);
 
 	dialog_seq = ids_init();
 }

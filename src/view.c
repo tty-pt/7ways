@@ -223,7 +223,7 @@ view_init(void)
 	view_w = be_width / view_mul;
 	view_h = be_height / view_mul;
 
-	smap_hd = geo_open(0xFFFFF);
+	smap_hd = geo_open(NULL, NULL, 0xFFFFF);
 	qmap_drop(smap_hd);
 }
 

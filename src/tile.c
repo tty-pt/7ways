@@ -74,9 +74,8 @@ tile_init(void)
 	unsigned qm_tm = qmap_reg(sizeof(tm_t));
 	unsigned qm_stile = qmap_reg(sizeof(stile_t));
 
-	tm_hd = qmap_open(QM_HNDL, qm_tm, 0xF, QM_AINDEX);
-	stile_hd = qmap_open(QM_HNDL, qm_stile,
-			0xFF, QM_AINDEX);
+	tm_hd = qmap_open(NULL, NULL, QM_HNDL, qm_tm, 0xF, QM_AINDEX);
+	stile_hd = qmap_open(NULL, NULL, QM_HNDL, qm_stile, 0xFF, QM_AINDEX);
 }
 
 unsigned

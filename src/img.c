@@ -39,10 +39,10 @@ img_init(void)
 	unsigned qm_img_be = qmap_reg(sizeof(img_be_t)),
 		 qm_img = qmap_reg(sizeof(img_t));
 
-	img_be_hd = qmap_open(QM_STR, qm_img_be, 0xF, 0);
-	img_hd = qmap_open(QM_HNDL, qm_img, 0xF, QM_AINDEX);
+	img_be_hd = qmap_open(NULL, NULL, QM_STR, qm_img_be, 0xF, 0);
+	img_hd = qmap_open(NULL, NULL, QM_HNDL, qm_img, 0xF, QM_AINDEX);
 	/* img_name_hd = qdb_open("img", QM_STR, QM_HNDL, 0xF, 0); */
-	img_name_hd = qmap_open(QM_STR, QM_HNDL, 0xF, 0);
+	img_name_hd = qmap_open(NULL, NULL, QM_STR, QM_HNDL, 0xF, 0);
 
 	tint = default_tint;
 }

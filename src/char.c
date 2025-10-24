@@ -198,6 +198,5 @@ char_init(void)
 {
 	unsigned qm_char = qmap_reg(sizeof(char_t));
 
-	char_hd = qmap_open(QM_HNDL, qm_char,
-			0xFF, QM_AINDEX);
+	char_hd = qmap_open(NULL, NULL, QM_HNDL, qm_char, 0xFF, QM_AINDEX);
 }
