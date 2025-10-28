@@ -102,6 +102,11 @@ img_new(uint8_t **data,
 	ref = qmap_put(img_hd, ref_r, &img);
 	qmap_put(img_name_hd, img.filename, &ref);
 
+
+	if (!(flags & IMG_LOAD))
+		be_register_texture(ref, img.data,
+				img.w, img.h);
+
 	return ref;
 }
 
@@ -126,6 +131,7 @@ unsigned img_load(const char *filename) {
 	img->be = be;
 
 	WARN("img_load %u: %s\n", ref, filename);
+
 	return ref;
 }
 
@@ -225,6 +231,14 @@ img_render_ex(unsigned img_ref,
 	uint32_t full_dw = dw, full_dh = dh;
 	uint32_t doffx = 0, doffy = 0;
 
+	if (be_render_img_ex) {
+		be_render_img_ex(img_ref,
+				x, y, cx, cy,
+				sw, sh, dw, dh,
+				tint);
+		return;
+	}
+
 	if (x < 0) {
 		uint32_t cut = (uint32_t)(-x);
 
@@ -307,11 +321,16 @@ img_paint(unsigned ref, uint32_t x, uint32_t y, uint32_t c)
 	color[1] = (c >> 8) & 0xFF;
 	color[2] = (c >> 16) & 0xFF;
 	color[3] = (c >> 24) & 0xFF;
+
+	be_update_texture_rect(ref,
+			x, y, 1, 1, color);
 }
 
 void
 img_del(unsigned ref)
 {
+	be_unregister_texture(ref);
+
 	const img_t *img = qmap_get(img_hd, &ref);
 	qmap_del(img_name_hd, img->filename);
 	free(img->filename);

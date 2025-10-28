@@ -34,6 +34,9 @@ void be_render(draw_lambda_t *lambda,
 	if (y < (int32_t) screen.min_y)
 		screen.min_y = y;
 
+	if (x + w > screen.max_x)
+		screen.max_x = x + w;
+
 	if (y + h > screen.max_y)
 		screen.max_y = y + h;
 

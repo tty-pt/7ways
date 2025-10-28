@@ -104,7 +104,7 @@ char_update(unsigned ref, double dt)
 {
 	char_t *ch = (char_t *) qmap_get(char_hd, &ref);
 	char_t cho;
-	double char_speed = 4.0, tr;
+	double char_speed = 5.5, tr;
 
 	if (ch->anim == AN_IDLE)
 		return 1;

@@ -84,6 +84,8 @@ pngi_load(const char *filename)
 		 }
 	 }
 
+	 be_update_texture_rect(ref, 0, 0, w, h, data);
+
 	 fclose(fp);
 	 png_destroy_read_struct(&png, &info, NULL);
 

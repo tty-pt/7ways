@@ -86,3 +86,23 @@ void be_flush(void) {
 	lseek(fb_fd, offset * screen.channels, SEEK_SET);
 	write(fb_fd, start, (h * sw) * screen.channels);
 }
+
+void be_register_texture(
+		unsigned ref, uint8_t *data,
+		uint32_t w, uint32_t h)
+{
+    /* do nothing */
+}
+
+void be_unregister_texture(unsigned ref)
+{
+	/* do nothing */
+}
+
+void be_update_texture_rect(unsigned ref,
+		uint32_t x, uint32_t y,
+		uint32_t w, uint32_t h,
+		uint8_t *data_rect_start)
+{
+	/* do nothing */
+}
