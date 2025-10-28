@@ -1,4 +1,5 @@
 #include "../include/img.h"
+#include "../include/gl.h"
 
 #include <ttypt/qmap.h>
 #include <ttypt/qsys.h>
@@ -78,6 +79,9 @@ img_deinit(void)
 		img_free((img_t *) value);
 }
 
+void draw_img_reg(uint32_t ref, uint8_t *data,
+			 uint32_t w, uint32_t h);
+
 unsigned
 img_new(uint8_t **data,
 		const char *filename,
@@ -104,7 +108,7 @@ img_new(uint8_t **data,
 
 
 	if (!(flags & IMG_LOAD))
-		be_register_texture(ref, img.data,
+		draw_img_reg(ref, img.data,
 				img.w, img.h);
 
 	return ref;
@@ -150,31 +154,6 @@ img_get(unsigned ref)
 	return qmap_get(img_hd, &ref);
 }
 
-static inline uint8_t mul255(uint8_t a, uint8_t b)
-{
-    return (uint8_t)((a * (int)b + 127) / 255);
-}
-
-static inline uint8_t
-blend_u8(uint8_t s, uint8_t d, uint8_t a)
-{
-    return (uint8_t) ((s * (int) a
-			    + d * (int)(255 - a)
-			    + 127) / 255
-		    );
-}
-
-static inline uint32_t
-map_coord_off(uint32_t d, uint32_t doff, uint32_t D_full,
-		uint32_t S)
-{
-	if (D_full <= 1 || S == 0)
-		return 0;
-
-	return (uint32_t)(((uint64_t) (d + doff) * (S - 1))
-			/ (D_full - 1));
-}
-
 static inline uint8_t *
 _img_pick(const img_t *img, uint32_t x, uint32_t y)
 {
@@ -185,103 +164,13 @@ _img_pick(const img_t *img, uint32_t x, uint32_t y)
 	return pixel;
 }
 
-static void
-img_lambda(uint8_t *color,
-		uint32_t x, uint32_t y,
-		void *context)
-{
-	img_ctx_t *c = context;
-	uint32_t sx = c->cx + map_coord_off(x, c->doffx,
-			c->dw, c->sw);
-	uint32_t sy = c->cy + map_coord_off(y, c->doffy,
-			c->dh, c->sh);
-
-	/* clamp defensivo */
-	if (sx >= c->img->w)
-		sx = c->img->w - 1;
-
-	if (sy >= c->img->h)
-		sy = c->img->h - 1;
-
-	uint8_t *pixel = _img_pick(c->img, sx, sy);
-
-	uint8_t ta = (uint8_t)((c->tint >> 24) & 0xFF);
-	uint8_t tr = (uint8_t)((c->tint >> 16) & 0xFF);
-	uint8_t tg = (uint8_t)((c->tint >>  8) & 0xFF);
-	uint8_t tb = (uint8_t)((c->tint >>  0) & 0xFF);
-
-	uint8_t a  = mul255(pixel[3], ta);
-	uint8_t sr = mul255(pixel[0], tr);
-	uint8_t sg = mul255(pixel[1], tg);
-	uint8_t sb = mul255(pixel[2], tb);
-
-	color[0] = blend_u8(sb, color[0], a);
-	color[1] = blend_u8(sg, color[1], a);
-	color[2] = blend_u8(sr, color[2], a);
-}
-
-void
-img_render_ex(unsigned img_ref,
-                 int32_t x, int32_t y,
-                 uint32_t cx, uint32_t cy,
-                 uint32_t sw, uint32_t sh,
-                 uint32_t dw, uint32_t dh)
-{
-	const img_t *img = img_get(img_ref);
-	uint32_t full_dw = dw, full_dh = dh;
-	uint32_t doffx = 0, doffy = 0;
-
-	if (be_render_img_ex) {
-		be_render_img_ex(img_ref,
-				x, y, cx, cy,
-				sw, sh, dw, dh,
-				tint);
-		return;
-	}
-
-	if (x < 0) {
-		uint32_t cut = (uint32_t)(-x);
-
-		if (cut >= dw)
-			return;
-
-		doffx = cut;
-		x += (int32_t) cut;
-		dw -= cut;
-	}
-
-	if (y < 0) {
-		uint32_t cut = (uint32_t)(-y);
-
-		if (cut >= dh)
-			return;
-
-		doffy = cut;
-		y += (int32_t)cut;
-		dh -= cut;
-	}
-
-	img_ctx_t ctx = {
-		.img = img,
-		.cx = cx, .cy = cy,
-		.sw = sw, .sh = sh,
-		.dw = full_dw, .dh = full_dh,
-		.doffx = doffx, .doffy = doffy,
-		.tint = tint,
-	};
-
-	be_render(img_lambda, x, y, dw, dh, &ctx);
-}
-
-void
-img_render(unsigned ref,
-                 int32_t x, int32_t y,
-                 uint32_t dw, uint32_t dh)
+void draw_img(uint32_t ref, int32_t x, int32_t y,
+		      uint32_t dw, uint32_t dh)
 {
 	const img_t *img = qmap_get(img_hd, &ref);
 
-	img_render_ex(ref, x, y, 0, 0,
-			img->w, img->h, dw, dh);
+	draw_img_ex(ref, x, y, 0, 0,
+			img->w, img->h, dw, dh, default_tint);
 }
 
 void
@@ -322,14 +211,13 @@ img_paint(unsigned ref, uint32_t x, uint32_t y, uint32_t c)
 	color[2] = (c >> 16) & 0xFF;
 	color[3] = (c >> 24) & 0xFF;
 
-	be_update_texture_rect(ref,
-			x, y, 1, 1, color);
+	draw_img_upd(ref, x, y, 1, 1, color);
 }
 
 void
 img_del(unsigned ref)
 {
-	be_unregister_texture(ref);
+	gl_img_ureg(ref);
 
 	const img_t *img = qmap_get(img_hd, &ref);
 	qmap_del(img_name_hd, img->filename);

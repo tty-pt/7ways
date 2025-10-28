@@ -1,4 +1,5 @@
 #include "../include/img.h"
+#include "../include/gl.h"
 #include "../include/input.h"
 #include "../include/view.h"
 #include "../include/time.h"
@@ -27,6 +28,7 @@ void
 game_deinit(void)
 {
 	input_deinit();
+	gl_deinit();
 	be_deinit();
 	img_deinit();
 }
@@ -34,11 +36,12 @@ game_deinit(void)
 double
 game_update(void) {
 	double dt;
+	/* be_flush(); */
+	gl_flush();
 	be_flush();
 	dt = dt_get();
 	view_update(dt);
 	input_poll();
-	be_flush();
 	return dt_get();
 }
 

@@ -53,13 +53,13 @@ tm_render(unsigned ref, uint32_t x, uint32_t y,
 
 	for (uint32_t iy = 0; iy < ry * h; iy += h)
 		for (uint32_t ix = 0; ix < rx * w; ix += w)
-			img_render_ex(tm->img,
+			draw_img_ex(tm->img,
 					x + ix,
 					y + iy,
 					nx * tm->w,
 					ny * tm->h,
 					tm->w, tm->h,
-					w, h);
+					w, h, default_tint);
 }
 
 const tm_t *

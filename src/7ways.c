@@ -221,7 +221,7 @@ int main(void) {
 	game_start();
 
 	while (start_cont) {
-		img_render(entry_ref,
+		draw_img(entry_ref,
 				0, 0,
 				be_width,
 				be_height);
@@ -232,7 +232,7 @@ int main(void) {
 		img_tint(0x00FFFFFF
 				| (((uint64_t) alpha) << 24));
 
-		img_render(press_ref,
+		draw_img(press_ref,
 				be_width / 2 - 128,
 				be_height - 128,
 				256,
@@ -244,7 +244,6 @@ int main(void) {
 	}
 
 	while (cont) {
-		shader_render();
 		view_render();
 		dialog_render();
 		game_update();
