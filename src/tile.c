@@ -1,3 +1,4 @@
+#include <ttypt/qgl.h>
 #include "../include/tile.h"
 #include "../include/cam.h"
 #include "../include/view.h"
@@ -26,7 +27,7 @@ tm_load(unsigned img_ref, uint32_t w, uint32_t h)
 	uint32_t img_w, img_h;
 
 	tm.img = img_ref;
-	img_size(&img_w, &img_h, img_ref);
+	qgl_tex_size(&img_w, &img_h, img_ref);
 	tm.w = w;
 	tm.h = h;
 	tm.nx = img_w / w;
@@ -53,13 +54,13 @@ tm_render(unsigned ref, uint32_t x, uint32_t y,
 
 	for (uint32_t iy = 0; iy < ry * h; iy += h)
 		for (uint32_t ix = 0; ix < rx * w; ix += w)
-			draw_img_ex(tm->img,
+			qgl_tex_draw_x(tm->img,
 					x + ix,
 					y + iy,
 					nx * tm->w,
 					ny * tm->h,
 					tm->w, tm->h,
-					w, h, default_tint);
+					w, h, qgl_default_tint);
 }
 
 const tm_t *

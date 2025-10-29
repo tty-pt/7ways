@@ -10,13 +10,9 @@ jobs:
     uses: tty-pt/ci/.github/workflows/all-in-one.yml@main
     with:
       name: 7ways
-      deps: "libgeo,libglfw3-dev,libpng-dev,libglew-dev"
-      deps_apk: "libgeo,glfw-dev,libpng-dev,glew-dev"
-      deps_pacman: "libgeo,glfw,libpng,glew"
-      deps_rpm: "libgeo,glfw-devel,libpng-devel,glew-devel"
-      deps_brew: "libgeo,glfw,libpng"
-      deps_openbsd: "libqsys,libgeo,glfw,png,glew"
-      deps_pacman_mingw: "mingw-w64-libgeo,mingw-w64-glfw,mingw-w64-libpng,mingw-w64-glew"
+      deps: "libgeo,libqgl"
+      deps_openbsd: "libqsys,libgeo,libqgl"
+      deps_pacman_mingw: "mingw-w64-libgeo,mingw-w64-libqgl"
     secrets:
       HOST: ${{ secrets.OPENBSD_HOST }}
       USER: ${{ secrets.OPENBSD_USER }}

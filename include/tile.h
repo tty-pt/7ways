@@ -1,7 +1,7 @@
 #ifndef TILE_H
 #define TILE_H
 
-#include "./img.h"
+#include <stdint.h>
 
 typedef struct {
 	unsigned img;

@@ -1,12 +1,6 @@
-CFLAGS-fb-rpg-o :=
+CFLAGS-7ways-o :=
 CFLAGS-game-o :=
 CFLAGS-time-o :=
-CFLAGS-be-o :=
-CFLAGS-gl-o :=
-CFLAGS-img-o :=
-CFLAGS-png-o :=
-CFLAGS-input-o :=
-CFLAGS-input--o :=
 CFLAGS-tile-o :=
 CFLAGS-char-o :=
 CFLAGS-view-o :=
