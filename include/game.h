@@ -1,7 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "../include/input.h"
 #include "../include/view.h"
 #include "../include/char.h"
 

@@ -1,6 +1,4 @@
-#include "../include/img.h"
-#include "../include/gl.h"
-#include "../include/input.h"
+#include <ttypt/qgl.h>
 #include "../include/view.h"
 #include "../include/time.h"
 #include "../include/tile.h"
@@ -13,35 +11,20 @@ const uint8_t dim = 3;
 void
 game_init(void)
 {
-	img_init();
-	png_init();
-	img_load_all();
-	be_init();
 	view_init();
 	tile_init();
 	char_init();
 	font_init();
-	input_init(0);
-}
-
-void
-game_deinit(void)
-{
-	input_deinit();
-	gl_deinit();
-	be_deinit();
-	img_deinit();
 }
 
 double
 game_update(void) {
 	double dt;
 	/* be_flush(); */
-	gl_flush();
-	be_flush();
+	qgl_flush();
 	dt = dt_get();
 	view_update(dt);
-	input_poll();
+	qgl_poll();
 	return dt_get();
 }
 

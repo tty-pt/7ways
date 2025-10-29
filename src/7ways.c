@@ -1,11 +1,12 @@
+#include <ttypt/qgl.h>
+
 #include "../include/game.h"
-#include "../include/shader.h"
-#include "../include/img.h"
 #include "../include/tile.h"
 #include "../include/dialog.h"
 #include "../include/time.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <ttypt/qsys.h>
 
@@ -123,17 +124,17 @@ void ensure_move(enum dir dir) {
 
 void
 my_update(void) {
-	if (key_value(GLFW_KEY_J) || key_value(GLFW_KEY_DOWN))
+	if (qgl_key_val(QGL_KEY_J) || qgl_key_val(QGL_KEY_DOWN))
 		ensure_move(DIR_DOWN);
-	if (key_value(GLFW_KEY_K) || key_value(GLFW_KEY_UP))
+	if (qgl_key_val(QGL_KEY_K) || qgl_key_val(QGL_KEY_UP))
 		ensure_move(DIR_UP);
-	if (key_value(GLFW_KEY_H) || key_value(GLFW_KEY_LEFT))
+	if (qgl_key_val(QGL_KEY_H) || qgl_key_val(QGL_KEY_LEFT))
 		ensure_move(DIR_LEFT);
-	if (key_value(GLFW_KEY_L) || key_value(GLFW_KEY_RIGHT))
+	if (qgl_key_val(QGL_KEY_L) || qgl_key_val(QGL_KEY_RIGHT))
 		ensure_move(DIR_RIGHT);
 }
 
-int input_default(unsigned short code,
+int qgl_key(unsigned short code,
 		unsigned short value,
 		int type UNUSED)
 {
@@ -147,28 +148,30 @@ int main(void) {
 	game_init();
 	dialog_init();
 
-	input_reg(GLFW_KEY_ENTER, key_cont);
-	input_reg(GLFW_KEY_SPACE, key_cont);
-	input_reg(GLFW_KEY_TAB, key_cont);
+	qgl_key_reg(QGL_KEY_ENTER, key_cont);
+	qgl_key_reg(QGL_KEY_SPACE, key_cont);
+	qgl_key_reg(QGL_KEY_TAB, key_cont);
 
-	input_reg(GLFW_KEY_Q, key_quit);
+	qgl_key_reg(QGL_KEY_Q, key_quit);
 
-	input_reg(GLFW_KEY_J, key_down);
-	input_reg(GLFW_KEY_DOWN, key_down);
-	input_reg(GLFW_KEY_K, key_up);
-	input_reg(GLFW_KEY_UP, key_up);
+	qgl_key_reg(QGL_KEY_J, key_down);
+	qgl_key_reg(QGL_KEY_DOWN, key_down);
+	qgl_key_reg(QGL_KEY_K, key_up);
+	qgl_key_reg(QGL_KEY_UP, key_up);
 
-	input_reg(GLFW_KEY_E, key_edit);
+	qgl_key_reg(QGL_KEY_E, key_edit);
+
+	qgl_key_default_reg(qgl_key);
 
 	view_load("./map.txt");
 
-	unsigned entry_ref = img_load("./resources/seven.png");
-	unsigned press_ref = img_load("./resources/press.png");
+	unsigned entry_ref = qgl_tex_load("./resources/seven.png");
+	unsigned press_ref = qgl_tex_load("./resources/press.png");
 
-	unsigned font_img = img_load("./resources/font.png");
+	unsigned font_img = qgl_tex_load("./resources/font.png");
 	font_ref = tm_load(font_img, 9, 21); 
 
-	unsigned ui_img = img_load("./resources/ui.png");
+	unsigned ui_img = qgl_tex_load("./resources/ui.png");
 	dialog.ui_box->ui_tm
 		= tm_load(ui_img, 32, 32);
 
@@ -220,8 +223,11 @@ int main(void) {
 
 	game_start();
 
+	uint32_t be_width, be_height;
+	qgl_size(&be_width, &be_height);
+
 	while (start_cont) {
-		draw_img(entry_ref,
+		qgl_tex_draw(entry_ref,
 				0, 0,
 				be_width,
 				be_height);
@@ -229,16 +235,16 @@ int main(void) {
 
 		uint8_t alpha = (time_tick * 200.0);
 
-		img_tint(0x00FFFFFF
+		qgl_tint(0x00FFFFFF
 				| (((uint64_t) alpha) << 24));
 
-		draw_img(press_ref,
+		qgl_tex_draw(press_ref,
 				be_width / 2 - 128,
 				be_height - 128,
 				256,
 				118);
 
-		img_tint(default_tint);
+		qgl_tint(qgl_default_tint);
 
 		game_update();
 	}
@@ -252,6 +258,5 @@ int main(void) {
 		char_pos(&cam.x, &cam.y, lamb);
 	}
 
-	game_deinit();
 	return 0;
 }

@@ -1,4 +1,4 @@
-#include "../include/draw.h"
+#include <ttypt/qgl.h>
 #include "../include/tile.h"
 #include "../include/cam.h"
 #include "../include/char.h"
@@ -64,7 +64,7 @@ view_render_tile(int16_t *tl, uint32_t *bmtl,
 {
 	int16_t p[] = { x + tl[0], y + tl[1], z };
 	layer_t *layer = &layers[z];
-	uint32_t col = img_pick(layer->bm_ref,
+	uint32_t col = qgl_tex_pick(layer->bm_ref,
 			x + bmtl[0],
 			y + bmtl[1]);
 
@@ -141,7 +141,7 @@ view_load(char *filename) {
 		CBUG(!space, "file input end: C\n");
 		*space = '\0';
 
-		unsigned img = img_load(word);
+		unsigned img = qgl_tex_load(word);
 		tm_load(img, w, w);
 	}
 
@@ -182,11 +182,11 @@ view_load(char *filename) {
 		snprintf(line, sizeof(line),
 				"./map/map%u.png",
 				i);
-		layer->bm_ref = img_load(line);
+		layer->bm_ref = qgl_tex_load(line);
 		layer->tm_ref = 0;
 	}
 
-	unsigned col_ref = img_load("./map/col0.png");
+	unsigned col_ref = qgl_tex_load("./map/col0.png");
 	size_t len = map_width * map_height * sizeof(unsigned);
 
 	view_flags = malloc(len);
@@ -199,12 +199,12 @@ view_load(char *filename) {
 		for (uint32_t x = 0; x < map_width; x++, vf++)
 			for (uint32_t z = 0; z < layer_n; z++) {
 				layer_t *layer = &view_layers[z];
-				uint32_t color = img_pick(
+				uint32_t color = qgl_tex_pick(
 						layer->bm_ref, x, y);
 				unsigned idx = map_idx(color);
 				uint32_t tx = idx % tm->nx,
 					 ty = idx / tm->nx;
-				uint32_t col = img_pick(col_ref, tx, ty);
+				uint32_t col = qgl_tex_pick(col_ref, tx, ty);
 				*vf |= col;
 			}
 }
@@ -212,7 +212,10 @@ view_load(char *filename) {
 void
 view_init(void)
 {
+	uint32_t be_width, be_height;
 	geo_init();
+
+	qgl_size(&be_width, &be_height);
 
 	cam.x = 0;
 	cam.y = 0;
@@ -248,7 +251,7 @@ view_paint(unsigned ref, unsigned tile, uint16_t layer)
 	double x, y;
 
 	char_pos(&x, &y, ref);
-	img_paint(view_layers[layer].bm_ref,
+	qgl_tex_paint(view_layers[layer].bm_ref,
 			((int16_t) x) - view_min[0],
 			((int16_t) y) - view_min[1],
 			map_color(tile));
@@ -303,15 +306,15 @@ view_sync(void)
 	
 	for (uint32_t y = 0; y < tm->ny; y++) {
 		for (uint32_t x = 0; x < tm->nx; x++, tile++) {
-			img_paint(view_layers[1].bm_ref,
+			qgl_tex_paint(view_layers[1].bm_ref,
 					x, y,
 					map_color(tile));
 		}
 	}
 
 
-	img_save(view_layers[0].bm_ref);
-	img_save(view_layers[1].bm_ref);
+	qgl_tex_save(view_layers[0].bm_ref);
+	qgl_tex_save(view_layers[1].bm_ref);
 }
 
 int

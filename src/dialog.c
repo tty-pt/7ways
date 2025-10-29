@@ -1,7 +1,7 @@
+#include <ttypt/qgl.h>
 #include "../include/dialog.h"
 #include "../include/tile.h"
 #include "../include/time.h"
-#include "../include/input.h"
 
 #include <math.h>
 #include <string.h>
@@ -36,6 +36,8 @@ typedef struct {
 
 unsigned dialog_hd, option_hd, input_hd;
 
+static uint32_t be_width, be_height;
+
 ui_box_t dialog_box = {
 	.scale = 3,
 	.idx = {
@@ -59,45 +61,45 @@ dialog_settings_t dialog = {
 };
 
 char key_chars[] = {
-	[GLFW_KEY_1] = '1',
-	[GLFW_KEY_2] = '2',
-	[GLFW_KEY_3] = '3',
-	[GLFW_KEY_4] = '4',
-	[GLFW_KEY_5] = '5',
-	[GLFW_KEY_6] = '6',
-	[GLFW_KEY_7] = '7',
-	[GLFW_KEY_8] = '8',
-	[GLFW_KEY_9] = '9',
-	[GLFW_KEY_0] = '0',
-	[GLFW_KEY_A] = 'a',
-	[GLFW_KEY_B] = 'b',
-	[GLFW_KEY_C] = 'c',
-	[GLFW_KEY_D] = 'd',
-	[GLFW_KEY_E] = 'e',
-	[GLFW_KEY_F] = 'f',
-	[GLFW_KEY_G] = 'g',
-	[GLFW_KEY_H] = 'h',
-	[GLFW_KEY_I] = 'i',
-	[GLFW_KEY_J] = 'j',
-	[GLFW_KEY_K] = 'k',
-	[GLFW_KEY_L] = 'l',
-	[GLFW_KEY_M] = 'm',
-	[GLFW_KEY_N] = 'n',
-	[GLFW_KEY_O] = 'o',
-	[GLFW_KEY_P] = 'p',
-	[GLFW_KEY_Q] = 'q',
-	[GLFW_KEY_R] = 't',
-	[GLFW_KEY_S] = 's',
-	[GLFW_KEY_T] = 't',
-	[GLFW_KEY_U] = 'u',
-	[GLFW_KEY_V] = 'v',
-	[GLFW_KEY_W] = 'w',
-	[GLFW_KEY_X] = 'x',
-	[GLFW_KEY_Y] = 'y',
-	[GLFW_KEY_Z] = 'z',
-	[GLFW_KEY_SPACE] = ' ',
-	[GLFW_KEY_BACKSPACE] = '\b',
-	[GLFW_KEY_ENTER] = '\n',
+	[QGL_KEY_1] = '1',
+	[QGL_KEY_2] = '2',
+	[QGL_KEY_3] = '3',
+	[QGL_KEY_4] = '4',
+	[QGL_KEY_5] = '5',
+	[QGL_KEY_6] = '6',
+	[QGL_KEY_7] = '7',
+	[QGL_KEY_8] = '8',
+	[QGL_KEY_9] = '9',
+	[QGL_KEY_0] = '0',
+	[QGL_KEY_A] = 'a',
+	[QGL_KEY_B] = 'b',
+	[QGL_KEY_C] = 'c',
+	[QGL_KEY_D] = 'd',
+	[QGL_KEY_E] = 'e',
+	[QGL_KEY_F] = 'f',
+	[QGL_KEY_G] = 'g',
+	[QGL_KEY_H] = 'h',
+	[QGL_KEY_I] = 'i',
+	[QGL_KEY_J] = 'j',
+	[QGL_KEY_K] = 'k',
+	[QGL_KEY_L] = 'l',
+	[QGL_KEY_M] = 'm',
+	[QGL_KEY_N] = 'n',
+	[QGL_KEY_O] = 'o',
+	[QGL_KEY_P] = 'p',
+	[QGL_KEY_Q] = 'q',
+	[QGL_KEY_R] = 't',
+	[QGL_KEY_S] = 's',
+	[QGL_KEY_T] = 't',
+	[QGL_KEY_U] = 'u',
+	[QGL_KEY_V] = 'v',
+	[QGL_KEY_W] = 'w',
+	[QGL_KEY_X] = 'x',
+	[QGL_KEY_Y] = 'y',
+	[QGL_KEY_Z] = 'z',
+	[QGL_KEY_SPACE] = ' ',
+	[QGL_KEY_BACKSPACE] = '\b',
+	[QGL_KEY_ENTER] = '\n',
 };
 static inline void
 box_row(unsigned start_idx, ui_box_t *ui_box,
@@ -207,6 +209,7 @@ dialog_init(void)
 	input_hd = qmap_open(NULL, NULL, QM_HNDL, qm_input, 0xFF, QM_AINDEX);
 
 	dialog_seq = ids_init();
+	qgl_size(&be_width, &be_height);
 }
 
 unsigned
@@ -410,7 +413,7 @@ dialog_options_render(void) {
 			max_len = len;
 	}
 
-	img_tint(default_tint);
+	qgl_tint(qgl_default_tint);
 	box_in(&cx, &cy, max_len * w, cdialog.option_n * h);
 
 	n = 0;
@@ -420,9 +423,9 @@ dialog_options_render(void) {
 			qmap_get(option_hd, &ref);;
 
 		if (n == cdialog.option)
-			img_tint(0xDD000000);
+			qgl_tint(0xDD000000);
 		else
-			img_tint(0x77000000);
+			qgl_tint(0x77000000);
 
 		font_render(
 				font_ref,
@@ -433,7 +436,7 @@ dialog_options_render(void) {
 				cy + (n + 1) * h,
 				dialog.font_scale);
 	}
-	img_tint(default_tint);
+	qgl_tint(qgl_default_tint);
 
 }
 
@@ -454,10 +457,10 @@ input_render(void)
 	cw *= w;
 	ch *= h;
 
-	img_tint(default_tint);
+	qgl_tint(qgl_default_tint);
 	box_in(&cx, &cy, cw, ch);
 
-	img_tint(0xDD000000);
+	qgl_tint(0xDD000000);
 
 	font_render(
 			font_ref,
@@ -468,7 +471,7 @@ input_render(void)
 			cy + ch,
 			dialog.font_scale);
 
-	img_tint(default_tint);
+	qgl_tint(qgl_default_tint);
 }
 
 void
@@ -492,7 +495,7 @@ dialog_render(void)
 	y += dy / 2;
 	my -= dy / 2;
 
-	img_tint(default_tint);
+	qgl_tint(qgl_default_tint);
 	box_render(dialog.ui_box,
 			x, y,
 			mx,
@@ -507,7 +510,7 @@ dialog_render(void)
 	y += (long) py;
 	my -= (long) py;
 
-	img_tint(0xAA000000);
+	qgl_tint(0xAA000000);
 
 	cdialog.next = font_render(
 			font_ref,
@@ -528,7 +531,7 @@ dialog_render(void)
 	else if (cdialog.input != QM_MISS)
 		input_render();
 
-	img_tint(default_tint);
+	qgl_tint(qgl_default_tint);
 }
 
 int
