@@ -8,7 +8,7 @@ LDLIBS-Linux += -lEGL
 obj-y := game time
 obj-y += tile char
 obj-y += view map
-obj-y += font dialog
+obj-y += dialog
 7ways-obj-y := ${obj-y:%=src/%.o}
 
 tmxc-obj-y := map img png

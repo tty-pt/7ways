@@ -19,11 +19,6 @@ typedef struct {
 
 typedef void dialog_cb_t(void);
 
-enum input_flags {
-	IF_MULTILINE = 1,
-	IF_NUMERIC = 2,
-};
-
 extern dialog_settings_t dialog;
 
 void dialog_init(void);

@@ -1,4 +1,5 @@
 #include <ttypt/qgl.h>
+#include <ttypt/qgl-tm.h>
 #include "../include/tile.h"
 #include "../include/cam.h"
 #include "../include/char.h"
@@ -142,7 +143,7 @@ view_load(char *filename) {
 		*space = '\0';
 
 		unsigned img = qgl_tex_load(word);
-		tm_load(img, w, w);
+		qgl_tm_new(img, w, w);
 	}
 
 #if !CHAR_SYNC
@@ -192,7 +193,7 @@ view_load(char *filename) {
 	view_flags = malloc(len);
 	memset(view_flags, 0, len);
 
-	const tm_t *tm = tm_get(0);
+	const qgl_tm_t *tm = qgl_tm_get(0);
 	unsigned *vf = view_flags;
 
 	for (uint32_t y = 0; y < map_height; y++)
@@ -302,7 +303,7 @@ void
 view_sync(void)
 {
 	unsigned tile = 0;
-	const tm_t *tm = tm_get(view_layers[1].tm_ref);
+	const qgl_tm_t *tm = qgl_tm_get(view_layers[1].tm_ref);
 	
 	for (uint32_t y = 0; y < tm->ny; y++) {
 		for (uint32_t x = 0; x < tm->nx; x++, tile++) {

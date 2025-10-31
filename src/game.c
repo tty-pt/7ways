@@ -12,9 +12,7 @@ void
 game_init(void)
 {
 	view_init();
-	tile_init();
 	char_init();
-	font_init();
 }
 
 double

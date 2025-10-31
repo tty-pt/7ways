@@ -1,3 +1,4 @@
+#include <ttypt/qgl-tm.h>
 #include "../include/char.h"
 #include "../include/tile.h"
 #include "../include/time.h"
@@ -30,22 +31,27 @@ static uint8_t anim_frames[] = {
 void char_render(unsigned ref)
 {
 	const char_t *ch = qmap_get(char_hd, &ref);
-	const tm_t *tm = tm_get(ch->tm_ref);
-	uint8_t anim_n = anim_frames[AN_IDLE]
-		? anim_frames[AN_IDLE]
-		: tm->nx;
-	uint32_t xn = ((int) (time_tick * char_speed))
-		% anim_n;
-	double offs = tm->w / 32.0;
-	uint32_t scr_x = view_hw + (ch->x + ch->nx
-			- offs + 0.5 - cam.x) * view_mul,
-		 scr_y = view_hh + (ch->y + ch->ny
-				 - offs - cam.y) * view_mul;
+	const qgl_tm_t *tm = qgl_tm_get(ch->tm_ref);
 
-	tm_render(ch->tm_ref, scr_x, scr_y, xn,
-			ch->anim * 4 + ch->dir,
-			cam.zoom * tm->w,
-			cam.zoom * tm->h, 1, 1);
+	/* nº de frames na linha (como antes) */
+	uint8_t anim_n = anim_frames[AN_IDLE] ? anim_frames[AN_IDLE] : tm->nx;
+	uint32_t xn = ((uint32_t)(time_tick * char_speed)) % anim_n;
+
+	/* (col=xn, row=ch->anim*4 + ch->dir) → idx linear */
+	uint32_t row = ch->anim * 4 + ch->dir;
+	uint32_t idx = row * tm->nx + xn;
+
+	double offs = tm->w / 32.0;
+
+	int32_t scr_x = (int32_t)(view_hw + (ch->x + ch->nx - offs + 0.5 - cam.x) * view_mul);
+	int32_t scr_y = (int32_t)(view_hh + (ch->y + ch->ny - offs - cam.y) * view_mul);
+
+	/* ordem correta: (ref, idx, x, y, w, h, rx, ry) */
+	qgl_tile_draw(ch->tm_ref, idx,
+	              scr_x, scr_y,
+	              (uint32_t)(cam.zoom * tm->w),
+	              (uint32_t)(cam.zoom * tm->h),
+	              1, 1);
 }
 
 void

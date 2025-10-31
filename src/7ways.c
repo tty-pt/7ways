@@ -1,7 +1,8 @@
 #include <ttypt/qgl.h>
+#include <ttypt/qgl-tm.h>
+#include <ttypt/qgl-ui.h>
 
 #include "../include/game.h"
-#include "../include/tile.h"
 #include "../include/dialog.h"
 #include "../include/time.h"
 
@@ -145,8 +146,12 @@ int qgl_key(unsigned short code,
 }
 
 int main(void) {
+	uint32_t w, h;
+
+	qgl_size(&w, &h);
+	qui_init(w, h);
+
 	game_init();
-	dialog_init();
 
 	qgl_key_reg(QGL_KEY_ENTER, key_cont);
 	qgl_key_reg(QGL_KEY_SPACE, key_cont);
@@ -167,13 +172,8 @@ int main(void) {
 
 	unsigned entry_ref = qgl_tex_load("./resources/seven.png");
 	unsigned press_ref = qgl_tex_load("./resources/press.png");
-
-	unsigned font_img = qgl_tex_load("./resources/font.png");
-	font_ref = tm_load(font_img, 9, 21); 
-
-	unsigned ui_img = qgl_tex_load("./resources/ui.png");
-	dialog.ui_box->ui_tm
-		= tm_load(ui_img, 32, 32);
+	font_ref = qgl_font_open("./resources/font.png", 9, 16, 0, 255); 
+	dialog_init();
 
 	lamb = 0;
 
