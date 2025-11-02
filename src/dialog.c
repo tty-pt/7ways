@@ -40,15 +40,16 @@ static uint32_t be_width, be_height;
 dialog_settings_t dialog = { .font_scale = 5 };
 static qui_style_rule_t *g_css;
 
-static qui_div_t *root, *txt;
-static qui_style_t options_style, cursor_style;
+static qui_div_t *root, *txt, *options, *cursor, *ibox;
+static qui_style_t options_style, cursor_style, input_style;
 static struct dialog cdialog;
 static char *dialog_arg[8];
 static unsigned dialog_arg_n;
 static ids_t dialog_seq;
-static int cursor_visible;
 
 extern uint32_t font_ref;
+static char *arrow = "\x1F";
+int cursor_on = 1;
 
 static char *dialog_snprintf(char *fmt)
 {
@@ -59,7 +60,7 @@ static char *dialog_snprintf(char *fmt)
 	for (s = fmt, r = res; *s; r++, s++) {
 		if (*s == '%' && isdigit((uint8_t)*(s + 1))) {
 			n = (unsigned)strtoull(s + 1, &e, 10);
-			if (n == 0 || n > dialog_arg_n) {
+			if (n == 0) {
 				*r = *s;
 				continue;
 			}
@@ -84,53 +85,52 @@ static qui_div_t *build_qui_tree(void)
 	qui_div_t *overlay = qui_new(root, NULL);
 	qui_class(overlay, "overlay");
 
-	qui_div_t *panel = qui_new(root, NULL);
+	qui_div_t *menu_panel = qui_new(overlay, NULL);
+	qui_class(menu_panel, "menu_panel");
+
+	qui_div_t *panel = qui_new(overlay, NULL);
 	qui_class(panel, "panel");
 
 	txt = qui_new(panel, NULL);
 	qui_class(txt, "text");
-	qui_text(txt, cdialog.text);
 
-	static char *arrow = "\x1F";
-	qui_div_t *cursor = qui_new(panel, &cursor_style);
-	if (((unsigned)round(time_tick * 2)) & 1)
-		qui_text(cursor, arrow);
-	else
-		qui_text(cursor, " ");
+	cursor = qui_new(panel, &cursor_style);
+	qui_text(cursor, arrow);
 
-	qui_div_t *options = qui_new(panel, &options_style);
+	options = qui_new(menu_panel, &options_style);
 
-	if (cdialog.option_n) {
-		idsi_t *it = ids_iter(&cdialog.options);
-		unsigned ref, idx = 0;
-
-		for (; ids_next(&ref, &it); idx++) {
-			const struct option *opt = qmap_get(option_hd, &ref);
-			qui_div_t *row = qui_new(options, NULL);
-
-			qui_class(row, (idx == cdialog.option) ?
-				      "option-active" : "option");
-			qui_text(row, opt->text);
-		}
-	}
-
-	if (cdialog.input != QM_MISS) {
-		const struct input *in = qmap_get(input_hd, &cdialog.input);
-		qui_div_t *ibox = qui_new(panel, NULL);
-
-		qui_class(ibox, "input");
-		qui_text(ibox, in->text);
-	}
+	ibox = qui_new(menu_panel, &input_style);
 
 	return root;
 }
 
+static void update_options(void) {
+	qui_clear(options);
+
+	if (!cdialog.option_n)
+		return;
+
+	idsi_t *it = ids_iter(&cdialog.options);
+	unsigned ref, idx = 0;
+
+	for (; ids_next(&ref, &it); idx++) {
+		const struct option *opt = qmap_get(option_hd, &ref);
+		qui_div_t *row = qui_new(options, NULL);
+
+		qui_class(row, (idx == cdialog.option) ?
+				"option-active" : "option");
+		qui_text(row, opt->text);
+	}
+
+	qui_apply_styles(options, g_css);
+}
+
+static void dialog_build_styles(void);
+
 void qui_rebuild(void) {
-	if (root)
-		qui_clear(root);
-	root = build_qui_tree();
-	qui_apply_styles(root, g_css);
-	const int margin = 10;
+	const int margin = 0;
+	update_options();
+	cursor_on = 1;
 
 	qui_layout(root, margin, margin,
 		   be_width - 2 * margin,
@@ -139,13 +139,21 @@ void qui_rebuild(void) {
 	cdialog.next = (char *)qui_overflow(txt);
 
 	if (cdialog.next) {
-		cursor_style.display = UI_DISPLAY_BLOCK;
 		options_style.display = UI_DISPLAY_NONE;
+		input_style.display = UI_DISPLAY_NONE;
 	} else {
+		cursor_on = 0;
 		cursor_style.display = UI_DISPLAY_NONE;
 		if (cdialog.option_n)
 			options_style.display = UI_DISPLAY_BLOCK;
+		if (cdialog.input != QM_MISS)
+			input_style.display = UI_DISPLAY_BLOCK;
 	}
+
+	qui_layout(root, margin, margin,
+		   be_width - 2 * margin,
+		   be_height - 2 * margin);
+
 }
 
 static void dialog_begin(unsigned ref)
@@ -158,9 +166,10 @@ static void dialog_begin(unsigned ref)
 		return;
 
 	ids_push(&dialog_seq, ref);
-	memset(&cdialog, 0, sizeof(cdialog));
+	/* memset(&cdialog, 0, sizeof(cdialog)); */
 	cdialog = *dlg;
 	cdialog.text = dialog_snprintf(dlg->text);
+	qui_text(txt, cdialog.text);
 	qui_rebuild();
 }
 
@@ -177,19 +186,32 @@ static void dialog_build_styles(void)
 	qui_style_t s;
 
 	css_reset(&s);
-	s.bg_color = 0x66000000;
+	s.position = UI_POS_ABSOLUTE;
+	s.left = s.right = s.top = s.bottom = 0;
+	s.pad_top = s.pad_bottom = s.pad_left = s.pad_right = 10;
 	qui_stylesheet_add(&g_css, "overlay", &s);
 
 	css_reset(&options_style);
-	options_style.position = UI_POS_ABSOLUTE;
-	options_style.right = 35;
-	options_style.bottom = 100;
+	options_style.bg_color = 0xAA101010;
+	options_style.align_items = UI_ALIGN_STRETCH;
+	options_style.border_color = 0xFFFFFFFF;
+	options_style.border_size = 2;
+	options_style.display = UI_DISPLAY_NONE;
 
 	css_reset(&s);
 	s.bg_color = 0xAA101010;
 	s.border_color = 0xFFFFFFFF;
 	s.border_size = 2;
+	s.grow = 0.3f;
+	s.basis = 0;
 	qui_stylesheet_add(&g_css, "panel", &s);
+
+	css_reset(&s);
+	s.justify_content = UI_JUSTIFY_CENTER;
+	s.align_items = UI_ALIGN_CENTER;
+	s.grow = 0.7f;
+	s.basis = 0;
+	qui_stylesheet_add(&g_css, "menu_panel", &s);
 
 	css_reset(&s);
 	s.font_ref = font_ref;
@@ -207,9 +229,10 @@ static void dialog_build_styles(void)
 	s.bg_color = 0x5500AAFF;
 	qui_stylesheet_add(&g_css, "option-active", &s);
 
-	s.bg_color = 0x55000000;
-	s.position = UI_POS_ABSOLUTE;
-	qui_stylesheet_add(&g_css, "input", &s);
+	css_reset(&input_style);
+	input_style.bg_color = 0x55000000;
+	input_style.border_color = 0xFFFFFFFF;
+	input_style.display = UI_DISPLAY_NONE;
 
 	css_reset(&cursor_style);
 	cursor_style.font_ref = font_ref;
@@ -234,7 +257,11 @@ void dialog_init(void)
 
 	dialog_seq = ids_init();
 	qgl_size(&be_width, &be_height);
+
 	dialog_build_styles();
+	qui_clear(root);
+	root = build_qui_tree();
+	qui_apply_styles(root, g_css);
 }
 
 unsigned dialog_add(char *text)
@@ -306,6 +333,10 @@ void dialog_render(void)
 	if (!cdialog.text)
 		return;
 
+	if (cursor_on)
+		cursor_style.display = (((unsigned)round(time_tick * 2)) & 1)
+			? UI_DISPLAY_BLOCK : UI_DISPLAY_NONE;
+
 	qui_render(root);
 }
 
@@ -330,15 +361,15 @@ int dialog_action(void)
 
 		dialog_arg[dialog_arg_n++] = in->text;
 		if (in->next != QM_MISS) {
+			input_style.display = UI_DISPLAY_NONE;
 			dialog_begin(in->next);
 			return 1;
 		}
 	}
 
 	if (cdialog.next || !cdialog.option_n) {
-		if (!cdialog.next && cdialog.then)
-			options_style.display = UI_DISPLAY_NONE;
 		cdialog.text = cdialog.next;
+		qui_text(txt, cdialog.text);
 		qui_rebuild();
 		return 1;
 	}
@@ -351,7 +382,6 @@ int dialog_action(void)
 
 	cdialog.text = NULL;
 	dialog_begin(opt->ref);
-	cursor_visible = 0;
 	return 0;
 }
 
@@ -386,7 +416,14 @@ int input_press(unsigned short code)
 	struct input *in = (struct input *)
 		qmap_get(input_hd, &cdialog.input);
 
+	if (code == QGL_KEY_ENTER && !(in->flags & IF_MULTILINE)) {
+		dialog_start(in->next);
+		return 0;
+	}
+
 	in->len += qgl_key_parse(in->text, in->len, code, in->flags);
+
+	qui_text(ibox, in->text);
 	qui_rebuild();
 	return 1;
 }
