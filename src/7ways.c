@@ -216,10 +216,10 @@ int main(void) {
 	unsigned dlg = char_dialog(1, "Do you want to learn how to edit the map?");
 
 	dialog_option(dlg, "No", "Oh. Ok, then. Smarty-pants.");
-	unsigned dlg2 = dialog_option(dlg, "Yes", "Press 'e' to pick an edit action! You can place a tile in front of you using 'p'. If you want to paint the floor where you stand, use 'space'!\n\nDo you want to learn about editing dialog?");
+	unsigned dlg2 = dialog_option(dlg, "Yes", "Press 'e' to pick an edit action! You can place a tile in front of you using 'p'. If you want to paint the floor where you stand, use 'space'!\nDo you want to learn about editing dialog?");
 
 	dialog_option(dlg2, "No", "Ok. Go ahead and paint!");
-	dialog_option(dlg2, "Yes", "Press 't' to add a new dialog. Insert the text and when you are finished press 'tab'. The dialog ID will be shown.\nOptions are similar. You press 'o' to add a new one, and you will be asked to input a dialog ID to associate it to.\nPressing 'tab', you'll be asked to input the option's text. Doing it a third time, you'll be asked to insert the resulting dialog. Again, you'll get a dialog ID.\nGot all that?");
+	dialog_option(dlg2, "Yes", "Press 't' to add a new dialog. Insert the text and when you are finished press 'tab'. The dialog ID will be shown. Options are similar. You press 'o' to add a new one, and you will be asked to input a dialog ID to associate it to. Pressing 'tab', you'll be asked to input the option's text. Doing it a third time, you'll be asked to insert the resulting dialog. Again, you'll get a dialog ID.\nGot all that?");
 
 	game_start();
 
