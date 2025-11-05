@@ -78,6 +78,7 @@ static char *dialog_snprintf(char *fmt)
 	return res;
 }
 
+/*
 static void make_example(qui_div_t *parent, char *className) {
 	qui_div_t *example = qui_new(parent, NULL);
 	qui_class(example, className);
@@ -88,6 +89,7 @@ static void make_example(qui_div_t *parent, char *className) {
 		qui_class(row, "option-active");
 	}
 }
+*/
 
 static qui_div_t *build_qui_tree(void)
 {
@@ -102,9 +104,9 @@ static qui_div_t *build_qui_tree(void)
 	qui_div_t *panel = qui_new(overlay, NULL);
 	qui_class(panel, "panel");
 
-	make_example(overlay, "example_panel");
-	make_example(overlay, "example_panel1");
-	make_example(overlay, "example_panel2");
+	/* make_example(overlay, "example_panel"); */
+	/* make_example(overlay, "example_panel1"); */
+	/* make_example(overlay, "example_panel2"); */
 	/* make_example(overlay, "example_panel3"); */
 
 	txt = qui_new(panel, NULL);
@@ -206,7 +208,6 @@ static void dialog_build_styles(void)
 	s.padding_top = s.padding_bottom
 		= s.padding_left = s.padding_right = 10;
 	s.flex_direction = QUI_COLUMN;
-	s.background_color = 0x55101010;
 	qui_stylesheet_add(&g_css, "overlay", &s);
 
 	css_reset(&options_style);
@@ -216,6 +217,10 @@ static void dialog_build_styles(void)
 	options_style.border_width = 2;
 	options_style.flex_direction = QUI_COLUMN;
 	options_style.display = QUI_DISPLAY_NONE;
+	options_style.box_shadow_offset_x = 10;
+	options_style.box_shadow_offset_y = 10;
+	options_style.box_shadow_blur = 10;
+	options_style.box_shadow_color = 0x99000000;
 
 	css_reset(&s);
 	s.background_color = 0xAA101010;
@@ -234,17 +239,24 @@ static void dialog_build_styles(void)
 	qui_stylesheet_add(&g_css, "example_panel3", &s);
 
 	css_reset(&s);
-	s.background_color = 0xAA101010;
-	s.border_color = 0xFFFFFFFF;
+	s.background_color = 0xAA000000;
+	s.border_color = 0xFF00FFFF;
 	s.border_width = 2;
 	s.flex_grow = 0.3f;
+	s.border_radius_bottom_left
+		= s.border_radius_bottom_right
+		= s.border_radius_top_left
+		= s.border_radius_top_right = 20;
+	s.box_shadow_blur = 10;
+	s.box_shadow_color = 0x99000000;
+	s.box_shadow_offset_x = 5;
+	s.box_shadow_offset_y = 5;
 	qui_stylesheet_add(&g_css, "panel", &s);
 
 	css_reset(&s);
 	s.justify_content = QUI_JUSTIFY_CENTER;
 	s.align_items = QUI_ALIGN_CENTER;
 	s.flex_grow = 0.7f;
-	s.background_color = 0x55005000;
 	qui_stylesheet_add(&g_css, "menu_panel", &s);
 
 	css_reset(&s);
@@ -253,11 +265,13 @@ static void dialog_build_styles(void)
 	s.color = 0xFFFFFFFF;
 	s.padding_left = s.padding_right
 		= s.padding_bottom = s.padding_top = 25;
+	s.white_space = QUI_WS_PRE_WRAP;
 	qui_stylesheet_add(&g_css, "text", &s);
 
 	s.color = 0xFFEEEEEE;
 	s.background_color = 0;
 	s.border_color = 0xFFFFFFFF;
+	s.text_align = QUI_TEXT_ALIGN_CENTER;
 	qui_stylesheet_add(&g_css, "option", &s);
 
 	s.border_color = s.color = 0xFFFFFFFF;
