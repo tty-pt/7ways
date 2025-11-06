@@ -1,6 +1,7 @@
 #include <ttypt/qgl.h>
 #include <ttypt/qgl-tm.h>
 #include <ttypt/qgl-ui.h>
+#include <ttypt/qgl-font.h>
 
 #include "../include/game.h"
 #include "../include/dialog.h"
