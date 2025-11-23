@@ -79,6 +79,7 @@ static char *dialog_snprintf(char *fmt)
 	return res;
 }
 
+#if 0
 static void make_example(qui_div_t *parent, char *className) {
 	qui_div_t *example = qui_new(parent, NULL);
 	qui_class(example, className);
@@ -89,6 +90,7 @@ static void make_example(qui_div_t *parent, char *className) {
 		qui_class(row, "option-active");
 	}
 }
+#endif
 
 static qui_div_t *build_qui_tree(void)
 {
@@ -103,7 +105,7 @@ static qui_div_t *build_qui_tree(void)
 	qui_div_t *panel = qui_new(overlay, NULL);
 	qui_class(panel, "panel");
 
-	make_example(overlay, "example_panel");
+	/* make_example(overlay, "example_panel"); */
 	/* make_example(overlay, "example_panel1"); */
 	/* make_example(overlay, "example_panel2"); */
 	/* make_example(overlay, "example_panel3"); */
@@ -120,7 +122,6 @@ static qui_div_t *build_qui_tree(void)
 
 	input = qui_new(menu_panel, NULL);
 	qui_class(input, "input");
-
 	return root;
 }
 
@@ -252,8 +253,6 @@ static void dialog_build_styles(void)
 	s.box_shadow_color = 0x99000000;
 	s.box_shadow_offset_x = 5;
 	s.box_shadow_offset_y = 5;
-	/* FIXME REMOVE THE FOLLOWING */
-	s.display = QUI_DISPLAY_FLEX;
 	qui_stylesheet_add(g_css, "panel", &s);
 
 	css_reset(&s);
@@ -479,7 +478,7 @@ int input_press(unsigned short code)
 	struct input *in = (struct input *)
 		qmap_get(input_hd, &cdialog.input);
 
-	if (code == QGL_KEY_ENTER && !(in->flags & IF_MULTILINE)) {
+	if (code == QGL_KEY_ENTER && !(in->flags & QGL_INPUT_MULTILINE)) {
 		dialog_start(in->next);
 		return 0;
 	}

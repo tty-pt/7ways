@@ -199,7 +199,7 @@ int main(void) {
 		= dialog_option(dlg_edit,
 				"Tile",
 				"Select tile number.");
-	dialog_input(dlg_tile, 7, 1, IF_NUMERIC,
+	dialog_input(dlg_tile, 7, 1, QGL_INPUT_NUMERIC,
 				"Tile '%1' selected");
 	dialog_then(dlg_tile, tile_sel);
 
@@ -207,7 +207,7 @@ int main(void) {
 		= dialog_option(dlg_edit,
 				"Layer",
 				"Select layer number.");
-	dialog_input(dlg_layer, 7, 1, IF_NUMERIC,
+	dialog_input(dlg_layer, 7, 1, QGL_INPUT_NUMERIC,
 			"Layer '%1' selected");
 	dialog_then(dlg_layer, layer_sel);
 
